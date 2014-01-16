@@ -1,0 +1,4 @@
+importFrom("utils", "read.csv")
+importFrom("plyr", "ldply")
+export(saveConfig, updateConfig, getXKCD, searchXKCD)
+S3method(print, rxkcd)
