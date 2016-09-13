@@ -140,10 +140,10 @@ searchXKCD <- function(which="significant"){
 #'     current directory. Default FALSE.
 #'
 #' @return a list containing the following fields: \itemize{
-#'     \item imgURL of the XKCD comic strip image (png)
+#'     \item img URL of the XKCD comic strip image (png)
 #'     \item title Title of the XKCD comic strip
 #'     \item month
-#'     \item numNumber of the XKCD comic strip
+#'     \item num Number of the XKCD comic strip
 #'     \item link
 #'     \item year Year of publication
 #'     \item safe_title
