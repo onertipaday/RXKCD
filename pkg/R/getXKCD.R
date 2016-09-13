@@ -23,7 +23,7 @@ read.xkcd <- function(file = NULL)
 #' This function updates the local version of the XKCD database used
 #' by searchXKCD.
 #'
-#' @references http://xkcd.com/license.html
+#' @references \url{http://xkcd.com/license.html}
 #'
 #' @export
 #'
@@ -69,7 +69,7 @@ updateConfig <- function(){
 #' This function saves the xkcd database as a file in the user's home
 #' directory.
 #'
-#' @references http://xkcd.com/license.html
+#' @references \url{http://xkcd.com/license.html}
 #'
 #' @export
 #'
@@ -97,7 +97,7 @@ saveConfig <- function(){
 #'     \item title The title of the XKCD comic strip
 #' }
 #'
-#' @references http://xkcd.com/license.html
+#' @references \url{http://xkcd.com/license.html}
 #'
 #' @export
 #'
@@ -152,7 +152,7 @@ searchXKCD <- function(which="significant"){
 #'     \item day
 #' }
 #'
-#' @references http://xkcd.com/license.html
+#' @references \url{http://xkcd.com/license.html}
 #'
 #' @export
 #' @importFrom graphics par
