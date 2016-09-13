@@ -29,6 +29,6 @@ searchXKCD(which="someone is wrong") }
 
 }
 \references{
-http://xkcd.com/license.html
+\url{http://xkcd.com/license.html}
 }
 

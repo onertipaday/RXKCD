@@ -23,16 +23,17 @@ current directory. Default FALSE.}
 }
 \value{
 a list containing the following fields: \itemize{
-    \item imgURL of the XKCD comic strip image (png)
+    \item img URL of the XKCD comic strip image (png)
     \item title Title of the XKCD comic strip
     \item month
-    \item numNumber of the XKCD comic strip
+    \item num Number of the XKCD comic strip
     \item link
     \item year Year of publication
     \item safe_title
     \item transcript
     \item alt
     \item day
+    \item news
 }
 }
 \description{
@@ -46,6 +47,6 @@ significant <- getXKCD(882, display=FALSE)
 
 }
 \references{
-http://xkcd.com/license.html
+\url{http://xkcd.com/license.html}
 }
 
