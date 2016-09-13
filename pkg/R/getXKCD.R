@@ -33,16 +33,16 @@ updateConfig <- function(){
 		stop("Use saveConfig() to save your xkcd database locally!")
 		} else load( paste(home, ".Rconfig/rxkcd.rda", sep="/") )
 	from <- dim(xkcd.df)[[1]]
-	current <- getXKCD("current", display=F)
+	current <- getXKCD("current", display=FALSE)
 	if ( current$num == xkcd.df$id[dim(xkcd.df)[[1]]] ) stop("Your local xkcd is already updated!")
 	tmp <- NULL
 	for( i in c((from+1):(current$num)) ){
-		if (is.null(tmp)) tmp <- getXKCD(i, display=F)
-		else tmp <- rbind(tmp, getXKCD(i, display=F))
+		if (is.null(tmp)) tmp <- getXKCD(i, display=FALSE)
+		else tmp <- rbind(tmp, getXKCD(i, display=FALSE))
 	}
 	suppressWarnings(tmp <- data.frame(tmp))
 	row.names(tmp) <- tmp$num
-	xkcd2add <- cbind( 
+	xkcd2add <- cbind(
 	"id"=unlist(tmp[["num"]]),
 	"img"=unlist(tmp[["img"]]),
 	"title"=unlist(tmp[["title"]]),
@@ -54,7 +54,7 @@ updateConfig <- function(){
 	"safe_title"=unlist(tmp[["safe_title"]]),
 	"transcript"=unlist(tmp[["transcript"]]),
 	"alt"=unlist(tmp[["alt"]]),
-	"day"=unlist(tmp[["day"]]) 
+	"day"=unlist(tmp[["day"]])
 	)
 	suppressWarnings(xkcd2add <- data.frame(xkcd2add))
 	row.names(xkcd2add) <- xkcd2add$num
@@ -172,18 +172,18 @@ searchXKCD <- function(which="significant"){
 #'
 getXKCD <- function(which = "current", display = TRUE, html = FALSE, saveImg = FALSE) {
 	if (which=="current") xkcd <- fromJSON("http://xkcd.com/info.0.json")
-	else if(which=="random"|which=="") {
+	else if(which=="random" || which=="") {
 		current <- fromJSON("http://xkcd.com/info.0.json")
 		num <- sample(1:current["num"][[1]], 1)
 		xkcd <- fromJSON(paste("http://xkcd.com/",num,"/info.0.json",sep=""))
-	} 
-	else xkcd <- fromJSON(paste("http://xkcd.com/",which,"/info.0.json",sep=""))
-	class(xkcd) <- "rxkcd"	
-	if(html) {
-		display= FALSE
-		browseURL( paste("http://xkcd.com/", as.numeric(xkcd["num"][[1]]),sep="") ) 
 	}
-	if (display|saveImg) {
+	else xkcd <- fromJSON(paste("http://xkcd.com/",which,"/info.0.json",sep=""))
+	class(xkcd) <- "rxkcd"
+	if(html) {
+		display <- FALSE
+		browseURL( paste("http://xkcd.com/", as.numeric(xkcd["num"][[1]]),sep="") )
+	}
+	if (display || saveImg) {
 		if(grepl(".png",xkcd["img"][[1]])){
 			download.file(url=xkcd["img"][[1]], quiet=TRUE, mode="wb", destfile=paste(tempdir(),"xkcd.png",sep="/"))
 			xkcd.img <- readPNG( paste(tempdir(),"xkcd.png",sep="/") )
