@@ -150,6 +150,7 @@ searchXKCD <- function(which="significant"){
 #'     \item transcript
 #'     \item alt
 #'     \item day
+#'     \item news
 #' }
 #'
 #' @references \url{http://xkcd.com/license.html}
