@@ -1,3 +1,4 @@
+#' @importFrom utils read.csv
 read.xkcd <- function(file = NULL)
 {
   if(!is.null(file) && file.exists(file)) {
@@ -19,7 +20,8 @@ read.xkcd <- function(file = NULL)
 #'
 #' Update the XKCD database saved in the user directory
 #'
-#' This function update the local version of the XKCD database used by searchXKCD
+#' This function updates the local version of the XKCD database used
+#' by searchXKCD.
 #'
 #' @references http://xkcd.com/license.html
 #'
@@ -64,7 +66,8 @@ updateConfig <- function(){
 #'
 #' Save XKCD database info into a file in the user directory
 #'
-#' This function saves the xkcd database as a file in the user's home directory
+#' This function saves the xkcd database as a file in the user's home
+#' directory.
 #'
 #' @references http://xkcd.com/license.html
 #'
@@ -80,16 +83,18 @@ saveConfig <- function(){
 	}
 }
 #'
-#' Search your favorite XKCD comic strip by title/trascript
+#' Search your favorite XKCD comic strip by title/transcript
 #'
-#' This function use grep to inspect the title and trascript for all the occurrences of a specified string and return a data.frame with both the number and the title of the XKCD comic strips.
+#' This function uses grep to inspect the title and transcript for all
+#' the occurrences of a specified string and returns a data.frame with
+#' both the number and the title of the XKCD comic strips.
 #'
 #' @param which string.
-#' @param xkcd.df A character string giving a xkcd file in csv format. By default the csv file in the data directory of the xkcd package are used.
 #'
-#' @return a data.frame containing the following fields: \itemize{
-#' \item num The num of the XKCD comic strip
-#' \item title The title of the XKCD comic strip
+#' @return a data.frame containing the following fields:
+#' \itemize{
+#'     \item num The num of the XKCD comic strip
+#'     \item title The title of the XKCD comic strip
 #' }
 #'
 #' @references http://xkcd.com/license.html
@@ -99,7 +104,7 @@ saveConfig <- function(){
 #' @examples
 #' \dontrun{
 #' library("RXKCD")
-#' searchXKCD(which="significant") 
+#' searchXKCD(which="significant")
 #' searchXKCD(which="someone is wrong") }
 #'
 searchXKCD <- function(which="significant"){
@@ -114,37 +119,51 @@ searchXKCD <- function(which="significant"){
 	which.tt <- grep(which, xkcd.df["title"][[1]], ignore.case = TRUE, useBytes = TRUE)
 	which.tr <- grep(which, xkcd.df["transcript"][[1]], ignore.case =TRUE, useBytes = TRUE)
 	which.all <- unique(c(which.tr, which.tt))
-	} 
+	}
 	out <- data.frame(num=xkcd.df[which.all, "num"], title=xkcd.df[which.all, "title"])
-	return(out)	
+	return(out)
 }
 #'
-#' Display your favourite XKCD comic in R
+#' Display your favorite XKCD comic in R
 #'
-#' This function fetches a XKCD comic strip (randomly or by number) and displays it on screen.
+#' This function fetches a XKCD comic strip (randomly or by number)
+#' and displays it on screen.
 #'
-#' @param which string: either "current" or "random"; or a number indicating the specific strip.
-#' @param display  logical; TRUE (default) if you like to display the strip on the screen
-#' @param html logical; TRUE if you like to open the XKCD web page for the selected comic in your browser: 
-#' if TRUE it sets display and saveImg arguments to FALSE. Default FALSE
-#' @param saveImg logical; TRUE if you want to save image in the current directory. Default FALSE
+#' @param which string: either "current" or "random"; or a number
+#'     indicating the specific strip.
+#' @param display logical; TRUE (default) if you like to display the
+#'     strip on the screen.
+#' @param html logical; TRUE if you like to open the XKCD web page for
+#'     the selected comic in your browser: if TRUE it sets display and
+#'     saveImg arguments to FALSE. Default FALSE.
+#' @param saveImg logical; TRUE if you want to save image in the
+#'     current directory. Default FALSE.
 #'
 #' @return a list containing the following fields: \itemize{
-#' \item imgURL of the XKCD comic strip image (png)
-#' \item title Title of the XKCD comic strip
-#' \item month
-#' \item numNumber of the XKCD comic strip
-#' \item link
-#' \item year Year of publication
-#' \item safe_title
-#' \item transcript
-#' \item alt
-#' \item day
+#'     \item imgURL of the XKCD comic strip image (png)
+#'     \item title Title of the XKCD comic strip
+#'     \item month
+#'     \item numNumber of the XKCD comic strip
+#'     \item link
+#'     \item year Year of publication
+#'     \item safe_title
+#'     \item transcript
+#'     \item alt
+#'     \item day
 #' }
 #'
 #' @references http://xkcd.com/license.html
 #'
 #' @export
+#' @importFrom graphics par
+#' @importFrom graphics plot
+#' @importFrom graphics rasterImage
+#' @importFrom utils browseURL
+#' @importFrom utils download.file
+#' @importFrom jpeg readJPEG
+#' @importFrom png readPNG
+#' @importFrom png writePNG
+#' @importFrom RJSONIO fromJSON
 #'
 #' @examples
 #'
