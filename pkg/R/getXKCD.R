@@ -156,7 +156,6 @@ searchXKCD <- function(which="significant"){
 #' @references \url{http://xkcd.com/license.html}
 #'
 #' @export
-#' @importFrom graphics par
 #' @importFrom graphics plot
 #' @importFrom graphics rasterImage
 #' @importFrom utils browseURL
