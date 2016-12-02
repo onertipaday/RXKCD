@@ -196,23 +196,11 @@ getXKCD <- function(which = "current", display = TRUE, html = FALSE, saveImg = F
 		# show the image if the format is supported
 		if(display){
 			img_dim <- dim(xkcd.img)
-			plot(0:max(img_dim), type = "n", axes = FALSE,
+			plot(c(0, img_dim[2]), c(0, img_dim[1]), type = "n",
+                             axes = FALSE, asp = 1, xaxs = "i", yaxs = "i",
 			     xaxt = "n", yaxt = "n", xlab = "", ylab = "")
-			usr <- par("usr")
-			pin <- par("pin")
-			pin_ratio <- pin[2] / pin[1]
-			img_ratio <- img_dim[1] / img_dim[2]
-			if (img_ratio > pin_ratio) {
-			    ytop <- usr[4]
-			    xright <- usr[1] + pin[2] / img_ratio / pin[1] *
-				(usr[2] - usr[1])
-			} else {
-			    ytop <- usr[3] + pin[1] * img_ratio / pin[2] *
-				(usr[4] - usr[3])
-			    xright <- usr[2]
-			}
-			rasterImage(xkcd.img, xleft = usr[1], ybottom = usr[3],
-				    xright = xright, ytop = ytop)
+			rasterImage(xkcd.img, xleft = 0, ybottom = 0,
+				    xright = img_dim[2], ytop = img_dim[1])
 		}
 		# save the image
 		if(saveImg) writePNG( image=xkcd.img, target=paste(xkcd$title,".png",sep="") )
