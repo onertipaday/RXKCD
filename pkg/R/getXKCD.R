@@ -197,7 +197,7 @@ getXKCD <- function(which = "current", display = TRUE, html = FALSE, saveImg = F
 		if(display){
 			img_dim <- dim(xkcd.img)
 			plot(c(0, img_dim[2]), c(0, img_dim[1]), type = "n",
-                             axes = FALSE, asp = 1, xaxs = "i", yaxs = "i",
+			     axes = FALSE, asp = 1, xaxs = "i", yaxs = "i",
 			     xaxt = "n", yaxt = "n", xlab = "", ylab = "")
 			rasterImage(xkcd.img, xleft = 0, ybottom = 0,
 				    xright = img_dim[2], ytop = img_dim[1])
