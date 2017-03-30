@@ -14,7 +14,7 @@ download.file2 <- function(...) {
     Call[["destfile"]] <- tmpfile
     retval <- try(eval.parent(as.call(Call)), silent = TRUE)
     if (inherits(retval, "try-error") || retval != 0 ||
-        !file.exists(tmpfile) || file.size(tmpfile) == 0) {
+        !file.exists(tmpfile) || file.info(tmpfile)[["size"]] == 0) {
         success <- FALSE
         for (method in c("wget", "curl")) {
             sw <- Sys.which(method)
@@ -24,7 +24,7 @@ download.file2 <- function(...) {
             Call[["method"]] <- method
             retval <- try(eval.parent(as.call(Call)), silent = TRUE)
             if (!inherits(retval, "try-error") && retval == 0 &&
-                file.exists(tmpfile) && file.size(tmpfile) > 0) {
+                file.exists(tmpfile) && file.info(tmpfile)[["size"]] > 0) {
                 success <- TRUE
                 break
             }
