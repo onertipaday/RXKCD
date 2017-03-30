@@ -31,4 +31,3 @@ searchXKCD(which="someone is wrong") }
 \references{
 \url{http://xkcd.com/license.html}
 }
-

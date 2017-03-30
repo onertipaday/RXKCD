@@ -1,3 +1,78 @@
+## Wrapper around download.file() (methods: default, wget and curl) or
+## RCurl::getBinaryURL(). Intention is to support https URLs when the
+## default method fails.
+#' @importFrom utils download.file
+download.file2 <- function(...) {
+    Call <- as.list(match.call(download.file))
+    Call[[1]] <- as.symbol("download.file")
+    the_url <- eval.parent(Call[["url"]])
+    Call[["url"]] <- the_url
+    Call[["quiet"]] <- TRUE
+    destfile <- eval.parent(Call[["destfile"]])
+    tmpfile <- tempfile()
+    on.exit(unlink(tmpfile))
+    Call[["destfile"]] <- tmpfile
+    retval <- try(eval.parent(as.call(Call)), silent = TRUE)
+    if (inherits(retval, "try-error") || retval != 0 ||
+        !file.exists(tmpfile)) {
+        success <- FALSE
+        for (method in c("wget", "curl")) {
+            sw <- Sys.which(method)
+            if (is.na(sw) || !grepl(method, sw, fixed = TRUE)) {
+                next
+            }
+            Call[["method"]] <- method
+            retval <- try(eval.parent(as.call(Call)), silent = TRUE)
+            if (!inherits(retval, "try-error") && retval == 0 &&
+                file.exists(tmpfile)) {
+                success <- TRUE
+                break
+            }
+        }
+        ## requireNamespace() does not exist in R < 2.14.0, therefore
+        ## loadNamespace()
+        if (!success &&
+            !inherits(try(loadNamespace("RCurl"), silent = TRUE),
+                      "try-error")) {
+            bytes <- try(RCurl::getBinaryURL(the_url), silent = TRUE)
+            if (!inherits(bytes, "try-error")) {
+                if (length(bytes) == 0L &&
+                    grepl("^[hH][tT][tT][pP]:", the_url)) {
+                    url2 <- sub("^[hH][tT][tT][pP]", "https", the_url)
+                    bytes <- try(RCurl::getBinaryURL(url2), silent = TRUE)
+                }
+                if (!inherits(bytes, "try-error") && length(bytes) > 0L) {
+                    writeBin(bytes, tmpfile)
+                    success <- TRUE
+                }
+            }
+        }
+    } else {
+        success <- TRUE
+    }
+    if (success) {
+        file.copy(tmpfile, destfile, overwrite = TRUE)
+        invisible(0)
+    } else {
+        warning(gettextf("could not download %s", the_url),
+                domain = NA)
+        invisible(1)
+    }
+}
+
+## Wrapper around RJSONIO::fromJSON, using download.file2()
+#' @importFrom RJSONIO fromJSON
+fromJSON2 <- function(...) {
+    Call <- as.list(match.call(fromJSON))
+    Call[[1]] <- as.symbol("fromJSON")
+    the_url <- eval.parent(Call[["content"]])
+    tmpfile <- tempfile()
+    on.exit(unlink(tmpfile))
+    stopifnot(download.file2(the_url, tmpfile) == 0)
+    Call[["content"]] <- tmpfile
+    eval.parent(as.call(Call))
+}
+
 #' @importFrom utils read.csv
 read.xkcd <- function(file = NULL)
 {
@@ -129,6 +204,13 @@ searchXKCD <- function(which="significant"){
 #' This function fetches a XKCD comic strip (randomly or by number)
 #' and displays it on screen.
 #'
+#' Old \R versions may have problems accessing HTTPS URLs such as
+#' those used on the XKCD website. In case the default method of
+#' \code{\link{download.file}} fails, alternatives will be tried. For
+#' the best chance to succeed, ensure that the command line tools
+#' \code{"wget"} and \code{"curl"} as well as the \code{"RCurl"}
+#' package are installed.
+#'
 #' @param which string: either "current" or "random"; or a number
 #'     indicating the specific strip.
 #' @param display logical; TRUE (default) if you like to display the
@@ -159,11 +241,9 @@ searchXKCD <- function(which="significant"){
 #' @importFrom graphics plot
 #' @importFrom graphics rasterImage
 #' @importFrom utils browseURL
-#' @importFrom utils download.file
 #' @importFrom jpeg readJPEG
 #' @importFrom png readPNG
 #' @importFrom png writePNG
-#' @importFrom RJSONIO fromJSON
 #'
 #' @examples
 #'
@@ -171,13 +251,13 @@ searchXKCD <- function(which="significant"){
 #' significant <- getXKCD(882, display=FALSE)
 #'
 getXKCD <- function(which = "current", display = TRUE, html = FALSE, saveImg = FALSE) {
-	if (which=="current") xkcd <- fromJSON("http://xkcd.com/info.0.json")
+	if (which=="current") xkcd <- fromJSON2("http://xkcd.com/info.0.json")
 	else if(which=="random" || which=="") {
-		current <- fromJSON("http://xkcd.com/info.0.json")
+		current <- fromJSON2("http://xkcd.com/info.0.json")
 		num <- sample(1:current["num"][[1]], 1)
-		xkcd <- fromJSON(paste("http://xkcd.com/",num,"/info.0.json",sep=""))
+		xkcd <- fromJSON2(paste("http://xkcd.com/",num,"/info.0.json",sep=""))
 	}
-	else xkcd <- fromJSON(paste("http://xkcd.com/",which,"/info.0.json",sep=""))
+	else xkcd <- fromJSON2(paste("http://xkcd.com/",which,"/info.0.json",sep=""))
 	class(xkcd) <- "rxkcd"
 	if(html) {
 		display <- FALSE
@@ -185,11 +265,11 @@ getXKCD <- function(which = "current", display = TRUE, html = FALSE, saveImg = F
 	}
 	if (display || saveImg) {
 		if(grepl(".png",xkcd["img"][[1]])){
-			download.file(url=xkcd["img"][[1]], quiet=TRUE, mode="wb", destfile=paste(tempdir(),"xkcd.png",sep="/"))
+			download.file2(url=xkcd["img"][[1]], quiet=TRUE, mode="wb", destfile=paste(tempdir(),"xkcd.png",sep="/"))
 			xkcd.img <- readPNG( paste(tempdir(),"xkcd.png",sep="/") )
 		}
 		else if(grepl(".jpg",xkcd["img"][[1]])){
-			download.file(url=xkcd["img"][[1]], quiet=TRUE, mode="wb", destfile=paste(tempdir(),"xkcd.jpg",sep="/"))
+			download.file2(url=xkcd["img"][[1]], quiet=TRUE, mode="wb", destfile=paste(tempdir(),"xkcd.jpg",sep="/"))
 			xkcd.img <- readJPEG( paste(tempdir(),"xkcd.jpg",sep="/") )
 		} else stop("Unsupported image format! Try html = TRUE")
 		# show the image if the format is supported

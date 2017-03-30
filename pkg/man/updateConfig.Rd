@@ -13,4 +13,3 @@ by searchXKCD.
 \references{
 \url{http://xkcd.com/license.html}
 }
-

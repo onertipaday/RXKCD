@@ -19,6 +19,8 @@ Imports:
         jpeg,
         png,
         RJSONIO
+Suggests:
+        RCurl
 License: GPL-2
 LazyLoad: yes
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1
