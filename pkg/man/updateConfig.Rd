@@ -11,5 +11,5 @@ This function updates the local version of the XKCD database used
 by searchXKCD.
 }
 \references{
-\url{http://xkcd.com/license.html}
+\url{https://xkcd.com/license.html}
 }

@@ -55,5 +55,5 @@ significant <- getXKCD(882, display=FALSE)
 
 }
 \references{
-\url{http://xkcd.com/license.html}
+\url{https://xkcd.com/license.html}
 }

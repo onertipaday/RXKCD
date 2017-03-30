@@ -1,7 +1,7 @@
 Package: RXKCD
 Type: Package
 Title: Get XKCD Comic from R
-Version: 1.8-0
+Version: 1.8-1
 Date: 2017-03-30
 Authors@R: c(person("Paolo", "Sonego", role = c("aut", "cph", "cre"),
         email = "paolo.sonego@gmail.com"), person("Mikko", "Korpela",

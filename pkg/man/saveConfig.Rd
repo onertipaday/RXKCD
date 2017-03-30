@@ -11,5 +11,5 @@ This function saves the xkcd database as a file in the user's home
 directory.
 }
 \references{
-\url{http://xkcd.com/license.html}
+\url{https://xkcd.com/license.html}
 }

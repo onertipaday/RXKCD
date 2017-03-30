@@ -14,7 +14,7 @@ download.file2 <- function(...) {
     Call[["destfile"]] <- tmpfile
     retval <- try(eval.parent(as.call(Call)), silent = TRUE)
     if (inherits(retval, "try-error") || retval != 0 ||
-        !file.exists(tmpfile)) {
+        !file.exists(tmpfile) || file.size(tmpfile) == 0) {
         success <- FALSE
         for (method in c("wget", "curl")) {
             sw <- Sys.which(method)
@@ -24,7 +24,7 @@ download.file2 <- function(...) {
             Call[["method"]] <- method
             retval <- try(eval.parent(as.call(Call)), silent = TRUE)
             if (!inherits(retval, "try-error") && retval == 0 &&
-                file.exists(tmpfile)) {
+                file.exists(tmpfile) && file.size(tmpfile) > 0) {
                 success <- TRUE
                 break
             }
@@ -98,7 +98,7 @@ read.xkcd <- function(file = NULL)
 #' This function updates the local version of the XKCD database used
 #' by searchXKCD.
 #'
-#' @references \url{http://xkcd.com/license.html}
+#' @references \url{https://xkcd.com/license.html}
 #'
 #' @export
 #'
@@ -144,7 +144,7 @@ updateConfig <- function(){
 #' This function saves the xkcd database as a file in the user's home
 #' directory.
 #'
-#' @references \url{http://xkcd.com/license.html}
+#' @references \url{https://xkcd.com/license.html}
 #'
 #' @export
 #'
@@ -172,7 +172,7 @@ saveConfig <- function(){
 #'     \item title The title of the XKCD comic strip
 #' }
 #'
-#' @references \url{http://xkcd.com/license.html}
+#' @references \url{https://xkcd.com/license.html}
 #'
 #' @export
 #'
@@ -235,7 +235,7 @@ searchXKCD <- function(which="significant"){
 #'     \item news
 #' }
 #'
-#' @references \url{http://xkcd.com/license.html}
+#' @references \url{https://xkcd.com/license.html}
 #'
 #' @export
 #' @importFrom graphics plot
@@ -251,17 +251,17 @@ searchXKCD <- function(which="significant"){
 #' significant <- getXKCD(882, display=FALSE)
 #'
 getXKCD <- function(which = "current", display = TRUE, html = FALSE, saveImg = FALSE) {
-	if (which=="current") xkcd <- fromJSON2("http://xkcd.com/info.0.json")
+	if (which=="current") xkcd <- fromJSON2("https://xkcd.com/info.0.json")
 	else if(which=="random" || which=="") {
-		current <- fromJSON2("http://xkcd.com/info.0.json")
+		current <- fromJSON2("https://xkcd.com/info.0.json")
 		num <- sample(1:current["num"][[1]], 1)
-		xkcd <- fromJSON2(paste("http://xkcd.com/",num,"/info.0.json",sep=""))
+		xkcd <- fromJSON2(paste("https://xkcd.com/",num,"/info.0.json",sep=""))
 	}
-	else xkcd <- fromJSON2(paste("http://xkcd.com/",which,"/info.0.json",sep=""))
+	else xkcd <- fromJSON2(paste("https://xkcd.com/",which,"/info.0.json",sep=""))
 	class(xkcd) <- "rxkcd"
 	if(html) {
 		display <- FALSE
-		browseURL( paste("http://xkcd.com/", as.numeric(xkcd["num"][[1]]),sep="") )
+		browseURL( paste("https://xkcd.com/", as.numeric(xkcd["num"][[1]]),sep="") )
 	}
 	if (display || saveImg) {
 		if(grepl(".png",xkcd["img"][[1]])){
