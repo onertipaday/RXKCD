@@ -6,11 +6,11 @@ __Status:__ Stable
 
 ![downloads](http://cranlogs.r-pkg.org/badges/grand-total/RXKCD)
 
-###Description
+### Description
 
 Wrapper for accessing XKCD comics from R
 
-###Installation
+### Installation
 
 The CRAN version can be retrieved with:
 
