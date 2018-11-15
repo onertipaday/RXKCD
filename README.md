@@ -1,6 +1,6 @@
 ## RXKCD
 
-__Author:__ Paolo Sonego<br/>
+__Authors:__ Paolo Sonego, Mikko Korpela<br/>
 __License:__ [GPL-2.0](https://opensource.org/licenses/GPL-2.0)<br/>
 __Status:__ Stable
 
