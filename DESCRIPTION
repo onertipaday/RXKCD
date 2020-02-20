@@ -1,7 +1,7 @@
 Package: RXKCD
 Type: Package
 Title: Get XKCD Comic from R
-Version: 1.8-2
+Version: 1.9
 Date: 2017-03-30
 Authors@R: c(person("Paolo", "Sonego", role = c("aut", "cph", "cre"),
         email = "paolo.sonego@gmail.com", comment = c(ORCID = "http://orcid.org/0000-0002-8576-0169")),
@@ -11,8 +11,7 @@ Maintainer: Paolo Sonego <paolo.sonego@gmail.com>
 Description: Visualize your favorite XKCD comic strip directly from
         R. XKCD <https://xkcd.com> web comic content is provided under the Creative
         Commons Attribution-NonCommercial 2.5 License.
-Depends:
-        R (>= 2.11.0)
+Encoding: UTF-8
 Imports:
         graphics,
         utils,
@@ -23,4 +22,4 @@ Suggests:
         RCurl
 License: GPL-2
 LazyLoad: yes
-RoxygenNote: 6.0.1
+RoxygenNote: 7.0.2

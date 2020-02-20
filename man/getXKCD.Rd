@@ -4,8 +4,7 @@
 \alias{getXKCD}
 \title{Display your favorite XKCD comic in R}
 \usage{
-getXKCD(which = "current", display = TRUE, html = FALSE,
-  saveImg = FALSE)
+getXKCD(which = "current", display = TRUE, html = FALSE, saveImg = FALSE)
 }
 \arguments{
 \item{which}{string: either "current" or "random"; or a number
