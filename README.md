@@ -4,7 +4,8 @@ __Authors:__ Paolo Sonego, Mikko Korpela<br/>
 __License:__ [GPL-2.0](https://opensource.org/licenses/GPL-2.0)<br/>
 __Status:__ Stable
 
-![downloads](http://cranlogs.r-pkg.org/badges/grand-total/RXKCD)
+[![rstudio mirror downloads](http://cranlogs.r-pkg.org/badges/RXKCD)](https://github.com/metacran/cranlogs.app)
+[![rstudio mirror downloads grand-total](http://cranlogs.r-pkg.org/badges/grand-total/RXKCD)](https://github.com/metacran/cranlogs.app)
 
 ### Description
 
@@ -19,3 +20,13 @@ The CRAN version can be retrieved with:
 The latest version can be obtained via:
 
     devtools::install_github("onertipaday/RXKCD")
+
+### Usage
+
+```{r}
+library(RXKCD)
+searchXKCD("significant")
+getXKCD(882)
+```
+
+
