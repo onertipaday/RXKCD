@@ -89,9 +89,30 @@ read.xkcd <- function(file = NULL)
       xkcd <- file.path(path, file)
     }
   }
-  out <-read.csv(xkcd)
+  out <- readRDS(xkcd)
   return(out)
 }
+
+load.xkcd <- function(file = NULL)
+{
+  if(!is.null(file) && file.exists(file)) {
+    xkcd <- file
+  } else {
+    path <- system.file("xkcd", package = "RXKCD") # fix requested by Brian Ripley
+    datafiles <- list.files(path)
+    if(!is.null(file) && file.exists(file.path(path, file))) {
+      xkcd <- file.path(path, file)
+    } else {
+      if(!is.null(file)) stop("sorry, ", sQuote(file), " not found")
+      file <- datafiles
+      xkcd <- file.path(path, file)
+    }
+  }
+  out <-readRDS(xkcd)
+  return(out)
+  
+}
+
 #'
 #' Update the XKCD database saved in the user directory
 #'
@@ -102,41 +123,39 @@ read.xkcd <- function(file = NULL)
 #'
 #' @export
 #'
+#' @importFrom plyr rbind.fill
 updateConfig <- function(){
-	home <- Sys.getenv("HOME") # user's home directory
-	if( !file.exists( paste(home, ".Rconfig/rxkcd.rda", sep="/") ) ) {
-		stop("Use saveConfig() to save your xkcd database locally!")
-		} else load( paste(home, ".Rconfig/rxkcd.rda", sep="/") )
-	from <- dim(xkcd.df)[[1]]
-	current <- getXKCD("current", display=FALSE)
-	if ( current$num == xkcd.df$id[dim(xkcd.df)[[1]]] ) stop("Your local xkcd is already updated!")
-	tmp <- NULL
-	for( i in c((from+1):(current$num)) ){
-		if (is.null(tmp)) tmp <- getXKCD(i, display=FALSE)
-		else tmp <- rbind(tmp, getXKCD(i, display=FALSE))
-	}
-	suppressWarnings(tmp <- data.frame(tmp))
-	row.names(tmp) <- tmp$num
-	xkcd2add <- cbind(
-	"id"=unlist(tmp[["num"]]),
-	"img"=unlist(tmp[["img"]]),
-	"title"=unlist(tmp[["title"]]),
-	"month"=unlist(tmp[["month"]]),
-	"num"=unlist(tmp[["num"]]),
-	"link"=unlist(tmp[["link"]]),
-	"year"=unlist(tmp[["year"]]),
-	"news"=unlist(tmp[["news"]]),
-	"safe_title"=unlist(tmp[["safe_title"]]),
-	"transcript"=unlist(tmp[["transcript"]]),
-	"alt"=unlist(tmp[["alt"]]),
-	"day"=unlist(tmp[["day"]])
-	)
-	suppressWarnings(xkcd2add <- data.frame(xkcd2add))
-	row.names(xkcd2add) <- xkcd2add$num
-	xkcd.updated <- rbind(xkcd.df,xkcd2add)
-	xkcd.df <- xkcd.updated
-	# write.csv(xkcd.updated,file="xkcd.csv",row.names=F)
-	save( xkcd.df, file=paste(home, ".Rconfig/rxkcd.rda", sep="/") , compress=TRUE)
+  home <- Sys.getenv("HOME") # user's home directory
+  if( !file.exists( paste(home, ".Rconfig/rxkcd.rda", sep="/") ) ) {
+    stop("Use saveConfig() to save your xkcd database locally!")
+  } else xkcd.df <- readRDS( paste(home, ".Rconfig/rxkcd.rda", sep="/") )
+  from <- dim(xkcd.df)[[1]]
+  current <- getXKCD("current", display=FALSE)
+  if ( current$num == xkcd.df$id[dim(xkcd.df)[[1]]] ) stop("Your local xkcd is already updated!")
+  tmp <- NULL
+  for( i in c((from+1):(current$num)) ){
+    if (is.null(tmp)) tmp <- data.frame(unclass(getXKCD(i, display=FALSE)))
+    else tmp <- plyr::rbind.fill(tmp, data.frame(unclass(getXKCD(i, display=FALSE))))
+  }
+  xkcd2add <- cbind(
+    "id"=unlist(tmp[["num"]]),
+    "img"=unlist(tmp[["img"]]),
+    "title"=unlist(tmp[["title"]]),
+    "month"=unlist(tmp[["month"]]),
+    "num"=unlist(tmp[["num"]]),
+    "link"=unlist(tmp[["link"]]),
+    "year"=unlist(tmp[["year"]]),
+    "news"=unlist(tmp[["news"]]),
+    "safe_title"=unlist(tmp[["safe_title"]]),
+    "transcript"=unlist(tmp[["transcript"]]),
+    "alt"=unlist(tmp[["alt"]]),
+    "day"=unlist(tmp[["day"]])
+  )
+  suppressWarnings(xkcd2add <- data.frame(xkcd2add))
+  xkcd.updated <- rbind(xkcd.df,xkcd2add)
+  xkcd.updated <- plyr::rbind.fill(xkcd.df,xkcd2add)
+  xkcd.df <- xkcd.updated
+  saveRDS( xkcd.df, file=paste(home, ".Rconfig/rxkcd.rda", sep="/") , compress=TRUE)
 }
 #'
 #' Save XKCD database info into a file in the user directory
@@ -154,7 +173,7 @@ saveConfig <- function(){
 	else {
 		dir.create( paste(home, ".Rconfig", sep="/") )
 		xkcd.df <- read.xkcd()
-		save( xkcd.df, file=paste(home, ".Rconfig/rxkcd.rda", sep="/") , compress=TRUE)
+		saveRDS( xkcd.df, file=paste(home, ".Rconfig/rxkcd.rda", sep="/") , compress=TRUE)
 	}
 }
 #'
@@ -186,8 +205,7 @@ searchXKCD <- function(which="significant"){
 	xkcd.df <- NULL # Thanks to Duncan Murdoch
 	home <- Sys.getenv("HOME") # user's home directory
 	if( file.exists( paste(home, ".Rconfig/rxkcd.rda", sep="/") ) ) {
-		load( paste(home, ".Rconfig/rxkcd.rda", sep="/") )
-		xkcd.df <- xkcd.df
+		xkcd.df <- readRDS( paste(home, ".Rconfig/rxkcd.rda", sep="/"))
 	} else	xkcd.df <- read.xkcd()
 	if(is.character(which)) {
 		if(length(which) > 1) which <- sample(which)
@@ -198,6 +216,7 @@ searchXKCD <- function(which="significant"){
 	out <- data.frame(num=xkcd.df[which.all, "num"], title=xkcd.df[which.all, "title"])
 	return(out)
 }
+
 #'
 #' Display your favorite XKCD comic in R
 #'

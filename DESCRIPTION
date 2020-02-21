@@ -13,6 +13,7 @@ Description: Visualize your favorite XKCD comic strip directly from
         Commons Attribution-NonCommercial 2.5 License.
 Encoding: UTF-8
 Imports:
+        plyr,
         graphics,
         utils,
         jpeg,
