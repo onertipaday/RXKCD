@@ -205,8 +205,10 @@ searchXKCD <- function(which="significant"){
 	xkcd.df <- NULL # Thanks to Duncan Murdoch
 	home <- Sys.getenv("HOME") # user's home directory
 	if( file.exists( paste(home, ".Rconfig/rxkcd.rda", sep="/") ) ) {
-	  tryCatch(readRDS( paste(home, ".Rconfig/rxkcd.rda", sep="/")), 
-	           finally = print(paste0("Wrong (RXKCD < 1.9) archive input format! You need to delete", home, "/.Rconfig/rxkcd.rda")))
+	  tryCatch(readRDS( paste(home, ".Rconfig/rxkcd.rda", sep="/")), error = function(e) {
+	             e$message <- paste0(e$message, "Wrong (RXKCD < 1.9) archive input format! You need to delete", home, "/.Rconfig/rxkcd.rda")
+	             stop(e)  
+	             })
 		xkcd.df <- readRDS( paste(home, ".Rconfig/rxkcd.rda", sep="/"))
 	} else	xkcd.df <- read.xkcd()
 	if(is.character(which)) {
