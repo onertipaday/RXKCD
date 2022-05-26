@@ -1,8 +1,8 @@
 Package: RXKCD
 Type: Package
 Title: Get XKCD Comic from R
-Version: 1.9.2
-Date: 2020-02-24
+Version: 1.10.0
+Date: 2022-05-26
 Authors@R: c(person("Paolo", "Sonego", role = c("aut", "cph", "cre"),
         email = "paolo.sonego@gmail.com", comment = c(ORCID = "http://orcid.org/0000-0002-8576-0169")),
         person("Mikko", "Korpela", role = "aut"))
@@ -22,4 +22,4 @@ Suggests:
         RCurl
 License: GPL-2
 LazyLoad: yes
-RoxygenNote: 7.0.2
+RoxygenNote: 7.2.0

@@ -124,23 +124,23 @@ load.xkcd <- function(file = NULL)
 #' @export
 #'
 #' @importFrom plyr rbind.fill
+#' @importFrom utils tail
 updateConfig <- function(){
   home <- Sys.getenv("HOME") # user's home directory
   if( !file.exists( paste(home, ".Rconfig/rxkcd.rda", sep="/") ) ) {
     stop("Use saveConfig() to save your xkcd database locally!")
   } else xkcd.df <- readRDS( paste(home, ".Rconfig/rxkcd.rda", sep="/") )
-  from <- dim(xkcd.df)[[1]]
+  # from <- dim(xkcd.df)[[1]]
+  from <- tail(xkcd.df$num,n=1)
   current <- getXKCD("current", display=FALSE)
-  if ( current$num == xkcd.df$id[dim(xkcd.df)[[1]]] ) stop("Your local xkcd is already updated!")
+  # if ( current$num == xkcd.df$id[dim(xkcd.df)[[1]]] ) stop("Your local xkcd is already updated!")
+  if ( current$num == from ) stop("Your local xkcd is already updated!")
   tmp <- NULL
   for( i in c((from+1):(current$num)) ){
     if (is.null(tmp)) tmp <- data.frame(unclass(getXKCD(i, display=FALSE)))
     else tmp <- plyr::rbind.fill(tmp, data.frame(unclass(getXKCD(i, display=FALSE))))
   }
   xkcd2add <- cbind(
-    "id"=unlist(tmp[["num"]]),
-    "img"=unlist(tmp[["img"]]),
-    "title"=unlist(tmp[["title"]]),
     "month"=unlist(tmp[["month"]]),
     "num"=unlist(tmp[["num"]]),
     "link"=unlist(tmp[["link"]]),
@@ -149,6 +149,8 @@ updateConfig <- function(){
     "safe_title"=unlist(tmp[["safe_title"]]),
     "transcript"=unlist(tmp[["transcript"]]),
     "alt"=unlist(tmp[["alt"]]),
+    "img"=unlist(tmp[["img"]]),
+    "title"=unlist(tmp[["title"]]),
     "day"=unlist(tmp[["day"]])
   )
   suppressWarnings(xkcd2add <- data.frame(xkcd2add))
