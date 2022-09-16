@@ -19,7 +19,7 @@ both the number and the title of the XKCD comic strips."><!-- mathjax --><script
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RXKCD</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.10.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.10.1</span>
       </span>
     </div>
 
@@ -27,7 +27,13 @@ both the number and the title of the XKCD comic strips."><!-- mathjax --><script
       <ul class="nav navbar-nav"><li>
   <a href="../reference/index.html">Reference</a>
 </li>
-      </ul><ul class="nav navbar-nav navbar-right"></ul></div><!--/.nav-collapse -->
+      </ul><ul class="nav navbar-nav navbar-right"><li>
+  <a href="https://github.com/onertipaday/RXKCD/" class="external-link">
+    <span class="fab fa-github fa-lg"></span>
+     
+  </a>
+</li>
+      </ul></div><!--/.nav-collapse -->
   </div><!--/.container -->
 </div><!--/.navbar -->
 
@@ -37,7 +43,7 @@ both the number and the title of the XKCD comic strips."><!-- mathjax --><script
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Search your favorite XKCD comic strip by title/transcript</h1>
-    
+    <small class="dont-index">Source: <a href="https://github.com/onertipaday/RXKCD/blob/HEAD/R/getXKCD.R" class="external-link"><code>R/getXKCD.R</code></a></small>
     <div class="hidden name"><code>searchXKCD.Rd</code></div>
     </div>
 
@@ -48,17 +54,20 @@ both the number and the title of the XKCD comic strips.</p>
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">searchXKCD</span><span class="op">(</span>which <span class="op">=</span> <span class="st">"significant"</span><span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">searchXKCD</span><span class="op">(</span>which <span class="op">=</span> <span class="st">"significant"</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
     <h2>Arguments</h2>
     <dl><dt>which</dt>
 <dd><p>string.</p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>a data.frame containing the following fields:</p><ul><li><p>num The num of the XKCD comic strip</p></li>
+    
+
+<p>a data.frame containing the following fields:</p><ul><li><p>num The num of the XKCD comic strip</p></li>
 <li><p>title The title of the XKCD comic strip</p></li>
 </ul></div>
     <div id="references">
@@ -68,11 +77,11 @@ both the number and the title of the XKCD comic strips.</p>
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span>
-<span class="r-in"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="st">"RXKCD"</span><span class="op">)</span></span>
-<span class="r-in"><span class="fu">searchXKCD</span><span class="op">(</span>which<span class="op">=</span><span class="st">"significant"</span><span class="op">)</span></span>
-<span class="r-in"><span class="fu">searchXKCD</span><span class="op">(</span>which<span class="op">=</span><span class="st">"someone is wrong"</span><span class="op">)</span> <span class="op">}</span></span>
-<span class="r-in"></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="st"><a href="https://github.com/onertipaday/RXKCD" class="external-link">"RXKCD"</a></span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">searchXKCD</span><span class="op">(</span>which<span class="op">=</span><span class="st">"significant"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">searchXKCD</span><span class="op">(</span>which<span class="op">=</span><span class="st">"someone is wrong"</span><span class="op">)</span> <span class="op">}</span></span></span>
+<span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
   </div>
@@ -87,7 +96,7 @@ both the number and the title of the XKCD comic strips.</p>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.6.</p>
 </div>
 
       </footer></div>

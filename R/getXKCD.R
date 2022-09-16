@@ -117,7 +117,7 @@ load.xkcd <- function(file = NULL)
 #' Update the XKCD database saved in the user directory
 #'
 #' This function updates the local version of the XKCD database used
-#' by searchXKCD.
+#' by searchXKCD().
 #'
 #' @references \url{https://xkcd.com/license.html}
 #'
@@ -130,10 +130,8 @@ updateConfig <- function(){
   if( !file.exists( paste(home, ".Rconfig/rxkcd.rda", sep="/") ) ) {
     stop("Use saveConfig() to save your xkcd database locally!")
   } else xkcd.df <- readRDS( paste(home, ".Rconfig/rxkcd.rda", sep="/") )
-  # from <- dim(xkcd.df)[[1]]
-  from <- tail(xkcd.df$num,n=1)
+  from <- as.numeric(tail(xkcd.df$num,n=1))
   current <- getXKCD("current", display=FALSE)
-  # if ( current$num == xkcd.df$id[dim(xkcd.df)[[1]]] ) stop("Your local xkcd is already updated!")
   if ( current$num == from ) stop("Your local xkcd is already updated!")
   tmp <- NULL
   for( i in c((from+1):(current$num)) ){
@@ -162,7 +160,7 @@ updateConfig <- function(){
 #'
 #' Save XKCD database info into a file in the user directory
 #'
-#' This function saves the xkcd database as a file in the user's home
+#' This function saves the XKCD database as a file in the user's home
 #' directory.
 #'
 #' @references \url{https://xkcd.com/license.html}
@@ -247,7 +245,7 @@ searchXKCD <- function(which="significant"){
 #'     current directory. Default FALSE.
 #'
 #' @return a list containing the following fields: \itemize{
-#'     \item img URL of the XKCD comic strip image (png)
+#'     \item img URL of the XKCD comic strip image (PNG)
 #'     \item title Title of the XKCD comic strip
 #'     \item month
 #'     \item num Number of the XKCD comic strip

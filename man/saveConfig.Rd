@@ -7,7 +7,7 @@
 saveConfig()
 }
 \description{
-This function saves the xkcd database as a file in the user's home
+This function saves the XKCD database as a file in the user's home
 directory.
 }
 \references{

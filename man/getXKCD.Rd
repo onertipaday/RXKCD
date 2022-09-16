@@ -22,7 +22,7 @@ current directory. Default FALSE.}
 }
 \value{
 a list containing the following fields: \itemize{
-    \item img URL of the XKCD comic strip image (png)
+    \item img URL of the XKCD comic strip image (PNG)
     \item title Title of the XKCD comic strip
     \item month
     \item num Number of the XKCD comic strip

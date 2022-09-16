@@ -8,7 +8,7 @@ updateConfig()
 }
 \description{
 This function updates the local version of the XKCD database used
-by searchXKCD.
+by searchXKCD().
 }
 \references{
 \url{https://xkcd.com/license.html}
