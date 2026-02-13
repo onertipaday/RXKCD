@@ -2,57 +2,31 @@
 % Please edit documentation in R/getXKCD.R
 \name{getXKCD}
 \alias{getXKCD}
-\title{Display your favorite XKCD comic in R}
+\title{Get XKCD comic}
 \usage{
 getXKCD(which = "current", display = TRUE, html = FALSE, saveImg = FALSE)
 }
 \arguments{
-\item{which}{string: either "current" or "random"; or a number
-indicating the specific strip.}
+\item{which}{A single string or a single numeric value. Specifies which comic to retrieve.
+Can be `"current"` for the latest comic, `"random"` for a random comic,
+or a comic number. Optional.}
 
-\item{display}{logical; TRUE (default) if you like to display the
-strip on the screen.}
+\item{display}{A single logical value. If `TRUE`, the comic image will be displayed
+in the R graphics device. Optional.}
 
-\item{html}{logical; TRUE if you like to open the XKCD web page for
-the selected comic in your browser: if TRUE it sets display and
-saveImg arguments to FALSE. Default FALSE.}
+\item{html}{A single logical value. If `TRUE`, the comic's URL will be opened in
+the default web browser. Optional.}
 
-\item{saveImg}{logical; TRUE if you want to save image in the
-current directory. Default FALSE.}
+\item{saveImg}{A single logical value. If `TRUE`, the comic image will be saved
+to a file in the current working directory. Optional.}
 }
 \value{
-a list containing the following fields: \itemize{
-    \item img URL of the XKCD comic strip image (png)
-    \item title Title of the XKCD comic strip
-    \item month
-    \item num Number of the XKCD comic strip
-    \item link
-    \item year Year of publication
-    \item safe_title
-    \item transcript
-    \item alt
-    \item day
-    \item news
-}
+A list containing details about the XKCD comic (number, title, date, image URL,
+alt text, link, and transcript). If `html` is `TRUE`, the list is returned
+invisibly. If the comic is not found or connection fails, it returns `NULL` invisibly.
+Errors will occur if `which` is invalid or if the XKCD API cannot be reached
+when attempting to get a random comic.
 }
 \description{
-This function fetches a XKCD comic strip (randomly or by number)
-and displays it on screen.
-}
-\details{
-Old \R versions may have problems accessing HTTPS URLs such as
-those used on the XKCD website. In case the default method of
-\code{\link{download.file}} fails, alternatives will be tried. For
-the best chance to succeed, ensure that the command line tools
-\code{"wget"} and \code{"curl"} as well as the \code{"RCurl"}
-package are installed.
-}
-\examples{
-
-library("RXKCD")
-significant <- getXKCD(882, display=FALSE)
-
-}
-\references{
-\url{https://xkcd.com/license.html}
+Fetches comic metadata and image from the XKCD JSON API.
 }

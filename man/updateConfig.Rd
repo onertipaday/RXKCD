@@ -2,14 +2,16 @@
 % Please edit documentation in R/getXKCD.R
 \name{updateConfig}
 \alias{updateConfig}
-\title{Update the XKCD database saved in the user directory}
+\title{Update XKCD Database (Smart Sync)}
 \usage{
 updateConfig()
 }
-\description{
-This function updates the local version of the XKCD database used
-by searchXKCD.
+\value{
+`TRUE`, invisibly, if the database is successfully updated or determined to be
+up-to-date. The function will stop with an error if it cannot connect to
+`xkcd.com`.
 }
-\references{
-\url{https://xkcd.com/license.html}
+\description{
+Connects to the local DuckDB. Checks for missing comics and fetches 
+full metadata (Title, Alt Text, Transcript) from the JSON API for any gaps.
 }

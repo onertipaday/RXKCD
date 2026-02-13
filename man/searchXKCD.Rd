@@ -2,32 +2,18 @@
 % Please edit documentation in R/getXKCD.R
 \name{searchXKCD}
 \alias{searchXKCD}
-\title{Search your favorite XKCD comic strip by title/transcript}
+\title{Search XKCD comics}
 \usage{
-searchXKCD(which = "significant")
+searchXKCD(query)
 }
 \arguments{
-\item{which}{string.}
+\item{query}{A single string to search for in comic titles, alt text, and transcripts.}
 }
 \value{
-a data.frame containing the following fields:
-\itemize{
-    \item num The num of the XKCD comic strip
-    \item title The title of the XKCD comic strip
-}
+A data frame containing matching XKCD comics, ordered by comic number in descending order.
+If no matches are found, an empty data frame is returned invisibly, and a message is printed.
+The function will stop with an error if the local database is not found.
 }
 \description{
-This function uses grep to inspect the title and transcript for all
-the occurrences of a specified string and returns a data.frame with
-both the number and the title of the XKCD comic strips.
-}
-\examples{
-\dontrun{
-library("RXKCD")
-searchXKCD(which="significant")
-searchXKCD(which="someone is wrong") }
-
-}
-\references{
-\url{https://xkcd.com/license.html}
+A short description...
 }
