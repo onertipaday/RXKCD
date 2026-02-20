@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Package Overview
 
-RXKCD is an R package (v2.0.0) that provides access to XKCD comics via the XKCD JSON API. It is published on CRAN.
+RXKCD is an R package (v2.0.0) that provides access to XKCD comics via the XKCD JSON API. v1.x is on CRAN; v2.0.0 is the current development version. `R CMD check` passes clean (`Status: OK`) on this branch.
 
 ## Common Commands
 
@@ -37,7 +37,7 @@ All source code lives in a single file: `R/getXKCD.R`. There are no internal hel
 
 **Public API (3 exported functions):**
 - `getXKCD(which, display, html, saveImg)` — always hits the live XKCD API; `which` accepts `"current"`, `"random"`, or a comic number; returns a list with `num`, `title`, `date`, `img`, `alt`, `link`, `transcript`
-- `updateConfig()` — smart incremental sync: connects to the local DuckDB, determines which comic IDs are missing (skipping the non-existent #404), downloads their metadata, and appends them; rate-limited at 0.05s per request
+- `updateConfig()` — smart incremental sync: connects to the local DuckDB, determines which comic IDs are missing (skipping the non-existent #404), downloads their metadata, and appends them in chunks of 100 to cap peak memory; rate-limited at 0.05s per request
 - `searchXKCD(query)` — queries the local DuckDB with SQL `ILIKE` across `title`, `alt`, and `transcript` fields; requires `updateConfig()` to have been run first
 
 **Local database:**
@@ -50,6 +50,8 @@ All source code lives in a single file: `R/getXKCD.R`. There are no internal hel
 ## Documentation
 
 Documentation is written as roxygen2 comments (`#'`) in `R/getXKCD.R`. After editing, run `roxygen2::roxygenise()` to regenerate `NAMESPACE` and `man/*.Rd`. The `NAMESPACE` file is auto-generated — do not edit it manually.
+
+`.Rbuildignore` excludes `.claude/`, `CLAUDE.md`, and `RXKCD_*.tar.gz` from the built package.
 
 ## No Test Suite
 
