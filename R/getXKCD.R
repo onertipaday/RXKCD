@@ -29,6 +29,7 @@ getXKCD <- function(which = "current", display = TRUE, html = FALSE, saveImg = F
   if (which == "current") {
     url <- paste0(base_url, "/info.0.json")
   } else if (which == "random") {
+    # Requires two API calls: one to discover max_id, one to fetch the random comic.
     current_res <- tryCatch(jsonlite::fromJSON(paste0(base_url, "/info.0.json")),
                             error = function(e) NULL)
     if (is.null(current_res)) stop("Could not connect to XKCD.")
@@ -93,8 +94,12 @@ getXKCD <- function(which = "current", display = TRUE, html = FALSE, saveImg = F
       
       if (saveImg && !is.null(img_data)) {
         safe_title <- gsub("[^a-zA-Z0-9]", "_", res$title)
-        filename <- paste0(safe_title, ".png")
-        png::writePNG(img_data, target = filename)
+        filename <- paste0(safe_title, ".", ext)
+        if (grepl("png", ext, ignore.case = TRUE)) {
+          png::writePNG(img_data, target = filename)
+        } else if (grepl("jpe?g", ext, ignore.case = TRUE)) {
+          jpeg::writeJPEG(img_data, target = filename)
+        }
         message(paste0("Saved image to: ", filename))
       }
     }
@@ -163,23 +168,23 @@ updateConfig <- function() {
   # 3. Batch Download
   # Setup progress bar
   pb <- txtProgressBar(min = 0, max = length(missing_ids), style = 3)
-  
-  # Prepare a list to collect data
+
+  # Prepare a list to collect data; flush to DB every 100 records
   new_data <- list()
-  
+  total_added <- 0L
+
+  safe_get <- function(x) if (is.null(x)) "" else x
+
   counter <- 0
   for (id in missing_ids) {
     url <- paste0("https://xkcd.com/", id, "/info.0.json")
-    
+
     # Use httr::GET with a small timeout to avoid hanging
     req <- tryCatch(httr::GET(url, httr::timeout(10)), error = function(e) NULL)
-    
+
     if (!is.null(req) && req$status_code == 200) {
       json <- httr::content(req, as = "parsed", type = "application/json")
-      
-      # Handle potential NULLs in JSON fields
-      safe_get <- function(x) if (is.null(x)) "" else x
-      
+
       new_data[[length(new_data) + 1]] <- data.frame(
         num = as.integer(json$num),
         title = safe_get(json$title),
@@ -190,29 +195,45 @@ updateConfig <- function() {
         stringsAsFactors = FALSE
       )
     }
-    
+
+    # Flush to DB every 100 records to cap peak memory use
+    if (length(new_data) >= 100) {
+      df_chunk <- do.call(rbind, new_data)
+      DBI::dbWriteTable(con, "xkcd", df_chunk, append = TRUE)
+      total_added <- total_added + nrow(df_chunk)
+      new_data <- list()
+    }
+
     counter <- counter + 1
     setTxtProgressBar(pb, counter)
-    
+
     # Be polite to the server
-    Sys.sleep(0.05) 
+    Sys.sleep(0.05)
   }
   close(pb)
-  
-  # 4. Write to DB
+
+  # 4. Write remaining records to DB
   if (length(new_data) > 0) {
-    df_new <- do.call(rbind, new_data)
-    DBI::dbWriteTable(con, "xkcd", df_new, append = TRUE)
-    message(paste("Added", nrow(df_new), "comics to the database."))
+    df_chunk <- do.call(rbind, new_data)
+    DBI::dbWriteTable(con, "xkcd", df_chunk, append = TRUE)
+    total_added <- total_added + nrow(df_chunk)
+  }
+
+  if (total_added > 0) {
+    message(paste("Added", total_added, "comics to the database."))
   } else {
     message("No valid data retrieved.")
   }
+
+  return(invisible(TRUE))
 }
 
 #' Search XKCD comics
 #'
 #' @description
-#' A short description...
+#' Searches the local DuckDB cache for comics whose title, alt text, or transcript
+#' match the given query string (case-insensitive). Run \code{updateConfig()} first
+#' to populate the database.
 #'
 #' @param query A single string to search for in comic titles, alt text, and transcripts.
 #'
@@ -231,21 +252,17 @@ searchXKCD <- function(query) {
     stop("Local database not found. Please run updateConfig() first.")
   }
   
-  con <- DBI::dbConnect(duckdb::duckdb(), db_path)
+  con <- DBI::dbConnect(duckdb::duckdb(), dbdir = db_path, read_only = TRUE)
   on.exit(DBI::dbDisconnect(con))
-  
-  # Search across Title, Alt Text, and Transcript
-  # Using parameterized queries is cleaner, but for simple ILIKE pattern matching:
-  sql <- sprintf(
-    "SELECT num, date, title, alt FROM xkcd 
-     WHERE title ILIKE '%%%1$s%%' 
-        OR alt ILIKE '%%%1$s%%' 
-        OR transcript ILIKE '%%%1$s%%'
-     ORDER BY num DESC", 
-    query
-  )
-  
-  res <- DBI::dbGetQuery(con, sql)
+
+  # Search across title, alt text, and transcript using parameterized ILIKE
+  sql <- "SELECT num, date, title, alt FROM xkcd
+          WHERE title ILIKE ?
+             OR alt ILIKE ?
+             OR transcript ILIKE ?
+          ORDER BY num DESC"
+  pattern <- paste0("%", query, "%")
+  res <- DBI::dbGetQuery(con, sql, params = list(pattern, pattern, pattern))
   
   if (nrow(res) == 0) {
     message("No matches found.")
