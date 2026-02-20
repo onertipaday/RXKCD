@@ -118,6 +118,7 @@ getXKCD <- function(which = "current", display = TRUE, html = FALSE, saveImg = F
 #' up-to-date. The function will stop with an error if it cannot connect to
 #' `xkcd.com`.
 #'
+#' @importFrom utils txtProgressBar setTxtProgressBar
 #' @export
 updateConfig <- function() {
   

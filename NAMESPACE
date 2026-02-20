@@ -3,3 +3,5 @@
 export(getXKCD)
 export(searchXKCD)
 export(updateConfig)
+importFrom(utils,setTxtProgressBar)
+importFrom(utils,txtProgressBar)

@@ -15,5 +15,7 @@ If no matches are found, an empty data frame is returned invisibly, and a messag
 The function will stop with an error if the local database is not found.
 }
 \description{
-A short description...
+Searches the local DuckDB cache for comics whose title, alt text, or transcript
+match the given query string (case-insensitive). Run \code{updateConfig()} first
+to populate the database.
 }
