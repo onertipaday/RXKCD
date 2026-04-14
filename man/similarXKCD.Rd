@@ -24,3 +24,9 @@ keywords, this function captures meaning (e.g., "feeling lonely" can match
 comics about isolation even if they don't contain the word "lonely").
 Run \code{updateConfig()} first to build the embeddings.
 }
+\examples{
+\dontrun{
+updateConfig()
+similarXKCD("space exploration")
+}
+}

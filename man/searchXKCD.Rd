@@ -21,3 +21,9 @@ comic titles, alt text, and transcripts. Results are ranked by relevance.
 Supports stemming (e.g., "running" matches "run") and stopword removal.
 Run \code{updateConfig()} first to populate the database and build the search index.
 }
+\examples{
+\dontrun{
+updateConfig()
+searchXKCD("satellite")
+}
+}

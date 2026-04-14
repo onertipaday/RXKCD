@@ -5,8 +5,8 @@ __License:__ [GPL-2.0](https://opensource.org/licenses/GPL-2.0)<br/>
 __Version:__ 2.0.1<br/>
 __Status:__ Stable
 
-[![rstudio mirror downloads](http://cranlogs.r-pkg.org/badges/RXKCD)](https://github.com/metacran/cranlogs.app)
-[![rstudio mirror downloads grand-total](http://cranlogs.r-pkg.org/badges/grand-total/RXKCD)](https://github.com/metacran/cranlogs.app)
+[![rstudio mirror downloads](http://cranlogs.r-pkg.org/badges/RXKCD)](https://github.com/r-hub/cranlogs.app)
+[![rstudio mirror downloads grand-total](http://cranlogs.r-pkg.org/badges/grand-total/RXKCD)](https://github.com/r-hub/cranlogs.app)
 
 ### Description
 

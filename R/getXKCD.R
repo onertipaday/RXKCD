@@ -20,6 +20,11 @@
 #' Errors will occur if `which` is invalid or if the XKCD API cannot be reached
 #' when attempting to get a random comic.
 #'
+#' @examples
+#' \dontrun{
+#' getXKCD(which = 1)
+#' getXKCD(which = "random")
+#' }
 #' @export
 getXKCD <- function(which = "current", display = TRUE, html = FALSE, saveImg = FALSE) {
   
@@ -118,6 +123,10 @@ getXKCD <- function(which = "current", display = TRUE, html = FALSE, saveImg = F
 #' up-to-date. The function will stop with an error if it cannot connect to
 #' `xkcd.com`.
 #'
+#' @examples
+#' \dontrun{
+#' updateConfig()
+#' }
 #' @importFrom utils txtProgressBar setTxtProgressBar
 #' @export
 updateConfig <- function() {
@@ -291,6 +300,11 @@ updateConfig <- function() {
 #' If no matches are found, an empty data frame is returned invisibly, and a message is printed.
 #' The function will stop with an error if the local database or search index is not found.
 #'
+#' @examples
+#' \dontrun{
+#' updateConfig()
+#' searchXKCD("satellite")
+#' }
 #' @export
 searchXKCD <- function(query) {
   
@@ -348,6 +362,11 @@ searchXKCD <- function(query) {
 #' If no similar comics are found, an empty data frame is returned invisibly.
 #' The function will stop with an error if the embeddings have not been built.
 #'
+#' @examples
+#' \dontrun{
+#' updateConfig()
+#' similarXKCD("space exploration")
+#' }
 #' @export
 similarXKCD <- function(query, n = 5L) {
 

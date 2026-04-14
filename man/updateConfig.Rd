@@ -15,3 +15,8 @@ up-to-date. The function will stop with an error if it cannot connect to
 Connects to the local DuckDB. Checks for missing comics and fetches 
 full metadata (Title, Alt Text, Transcript) from the JSON API for any gaps.
 }
+\examples{
+\dontrun{
+updateConfig()
+}
+}

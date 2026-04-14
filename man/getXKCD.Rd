@@ -30,3 +30,9 @@ when attempting to get a random comic.
 \description{
 Fetches comic metadata and image from the XKCD JSON API.
 }
+\examples{
+\dontrun{
+getXKCD(which = 1)
+getXKCD(which = "random")
+}
+}
