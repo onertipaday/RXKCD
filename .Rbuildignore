@@ -7,3 +7,7 @@
 ^\.claude$
 ^CLAUDE\.md$
 ^RXKCD_.*\.tar\.gz$
+^rxkcd-recomend-branch\.tar\.gz$
+^training$
+^memory$
+^\.pytest_cache$
