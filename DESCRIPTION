@@ -12,7 +12,7 @@ Authors@R: c(person(given = "Paolo",
                     role = "aut"))
 Description: Visualize your favorite XKCD comic strip directly from R.
     Includes full-text search with BM25 ranking and semantic similarity search
-    via local GloVe embeddings, powered by a local DuckDB cache.
+    via local 'GloVe' embeddings, powered by a local 'DuckDB' cache.
 URL: https://onertipaday.github.io/RXKCD/, https://github.com/onertipaday/RXKCD
 BugReports: https://github.com/onertipaday/RXKCD/issues
 License: GPL-2
