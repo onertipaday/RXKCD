@@ -5,8 +5,11 @@ Version: 2.0.1
 Date: 2026-02-05
 Author: Paolo Sonego [aut, cph, cre], Mikko Korpela [aut]
 Maintainer: Paolo Sonego <paolo.sonego@gmail.com>
-Description: Visualize your favorite XKCD comic strip directly from R. 
-    Includes live archive searching via local DuckDB and JSON API integration.
+Description: Visualize your favorite XKCD comic strip directly from R.
+    Includes full-text search with BM25 ranking and semantic similarity search
+    via local GloVe embeddings, powered by a local DuckDB cache.
+URL: https://onertipaday.github.io/RXKCD/, https://github.com/onertipaday/RXKCD
+BugReports: https://github.com/onertipaday/RXKCD/issues
 License: GPL-2
 Encoding: UTF-8
 Imports:

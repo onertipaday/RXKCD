@@ -1,35 +1,40 @@
 ## RXKCD
 
-__Authors:__ Paolo Sonego, Mikko Korpela<br/>
-__License:__ [GPL-2.0](https://opensource.org/licenses/GPL-2.0)<br/>
-__Version:__ 2.0.1<br/>
-__Status:__ Stable
+**Authors:** Paolo Sonego, Mikko Korpela  
+**License:** [GPL-2.0](https://opensource.org/licenses/GPL-2.0)  
+**Version:** 2.0.1  
+**Status:** Stable
 
-[![rstudio mirror downloads](http://cranlogs.r-pkg.org/badges/RXKCD)](https://github.com/metacran/cranlogs.app)
-[![rstudio mirror downloads grand-total](http://cranlogs.r-pkg.org/badges/grand-total/RXKCD)](https://github.com/metacran/cranlogs.app)
+[![rstudio mirror
+downloads](http://cranlogs.r-pkg.org/badges/RXKCD)](https://github.com/metacran/cranlogs.app)
+[![rstudio mirror downloads
+grand-total](http://cranlogs.r-pkg.org/badges/grand-total/RXKCD)](https://github.com/metacran/cranlogs.app)
 
 ### Description
 
-Visualize your favorite XKCD comic strip directly from R. Includes live archive searching with full-text BM25 ranking and semantic similarity search via local GloVe embeddings — all powered by a local DuckDB cache, no external API required.
+Visualize your favorite XKCD comic strip directly from R. Includes live
+archive searching with full-text BM25 ranking and semantic similarity
+search via local GloVe embeddings — all powered by a local DuckDB cache,
+no external API required.
 
 ### Installation
 
 The CRAN version can be retrieved with:
 
-```r
+``` r
 install.packages("RXKCD")
 ```
 
 The latest version (v2.0.1) can be obtained via:
 
-```r
+``` r
 # install.packages("pak")
 pak::pak("onertipaday/RXKCD")
 ```
 
 ### Usage
 
-```r
+``` r
 library(RXKCD)
 
 # First run: downloads all comic metadata, builds FTS index and GloVe embeddings
@@ -53,8 +58,8 @@ similarXKCD("space exploration", n = 10)
 ### Functions
 
 | Function | Description |
-|----------|-------------|
+|----|----|
 | `getXKCD(which, display, html, saveImg)` | Fetch a comic from the live XKCD API. `which` accepts `"current"`, `"random"`, or a comic number. |
-| `updateConfig()` | Sync local DuckDB cache with new comics, rebuild the FTS index, and retrain GloVe embeddings. |
+| [`updateConfig()`](https://onertipaday.github.io/RXKCD/reference/updateConfig.md) | Sync local DuckDB cache with new comics, rebuild the FTS index, and retrain GloVe embeddings. |
 | `searchXKCD(query)` | Full-text search across title, alt text, and transcript using BM25 ranking. Returns results with a relevance `score`. |
 | `similarXKCD(query, n = 5)` | Semantic similarity search using local GloVe embeddings. Returns top `n` results with a `similarity` score (0–1). |

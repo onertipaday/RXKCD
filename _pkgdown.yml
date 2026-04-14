@@ -1,1 +1,21 @@
 destination: docs
+
+url: https://onertipaday.github.io/RXKCD/
+
+template:
+  bootstrap: 5
+
+home:
+  title: RXKCD — XKCD Comics from R
+
+reference:
+  - title: Fetch Comics
+    desc: Retrieve comics from the live XKCD API.
+    contents:
+      - getXKCD
+  - title: Local Database
+    desc: Build and query a local DuckDB cache of all comic metadata.
+    contents:
+      - updateConfig
+      - searchXKCD
+      - similarXKCD
