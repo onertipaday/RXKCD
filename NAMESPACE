@@ -2,6 +2,7 @@
 
 export(getXKCD)
 export(searchXKCD)
+export(similarXKCD)
 export(updateConfig)
 importFrom(utils,setTxtProgressBar)
 importFrom(utils,txtProgressBar)
