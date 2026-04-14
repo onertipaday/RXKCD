@@ -235,6 +235,43 @@ updateConfig <- function() {
                  stemmer = 'porter', stopwords = 'english', lower = 1, strip_accents = 1)")
   message("Full-text search index updated.")
 
+  # 6. Build GloVe embeddings for similarXKCD()
+  comics <- DBI::dbGetQuery(con, "SELECT num, title, alt, transcript FROM xkcd ORDER BY num")
+  corpus <- paste(comics$title, comics$alt, comics$transcript, sep = " ")
+  corpus <- tolower(trimws(corpus))
+
+  it <- text2vec::itoken(corpus, tokenizer = text2vec::space_tokenizer, progressbar = FALSE)
+  vocab <- text2vec::create_vocabulary(it)
+  vocab <- text2vec::prune_vocabulary(vocab, term_count_min = 2L)
+  vectorizer <- text2vec::vocab_vectorizer(vocab)
+
+  # Rebuild iterator for TCM (iterators are consumed)
+  it <- text2vec::itoken(corpus, tokenizer = text2vec::space_tokenizer, progressbar = FALSE)
+  tcm <- text2vec::create_tcm(it, vectorizer, skip_grams_window = 5L)
+
+  glove <- text2vec::GlobalVectors$new(rank = 100L, x_max = 10L)
+  wv_main <- glove$fit_transform(tcm, n_iter = 25L, convergence_tol = 0.001)
+  wv_context <- glove$components
+  word_vectors <- wv_main + t(wv_context)
+
+  # Compute document embeddings (average of word vectors per comic)
+  wv_vocab <- rownames(word_vectors)
+  embed_dim <- ncol(word_vectors)
+  embed_matrix <- matrix(0, nrow = nrow(comics), ncol = embed_dim)
+
+  for (i in seq_len(nrow(comics))) {
+    tokens <- unlist(strsplit(corpus[i], "\\s+"))
+    matched <- tokens[tokens %in% wv_vocab]
+    if (length(matched) > 0) {
+      embed_matrix[i, ] <- colMeans(word_vectors[matched, , drop = FALSE])
+    }
+  }
+  rownames(embed_matrix) <- comics$num
+
+  saveRDS(word_vectors, file.path(db_dir, "glove_vectors.rds"))
+  saveRDS(embed_matrix, file.path(db_dir, "embeddings.rds"))
+  message("GloVe embeddings updated.")
+
   return(invisible(TRUE))
 }
 
@@ -289,6 +326,83 @@ searchXKCD <- function(query) {
     message("No matches found.")
     return(invisible(res))
   }
-  
+
   return(res)
+}
+
+#' Find semantically similar XKCD comics
+#'
+#' @description
+#' Uses pre-computed GloVe embeddings to find comics that are semantically
+#' similar to the given query. Unlike \code{searchXKCD()}, which matches
+#' keywords, this function captures meaning (e.g., "feeling lonely" can match
+#' comics about isolation even if they don't contain the word "lonely").
+#' Run \code{updateConfig()} first to build the embeddings.
+#'
+#' @param query A single string describing the topic or feeling to search for.
+#' @param n A single integer specifying the number of results to return. Defaults to 5.
+#'
+#' @returns
+#' A data frame with columns \code{num}, \code{date}, \code{title}, \code{alt},
+#' and \code{similarity} (cosine similarity score, 0-1), ordered by similarity.
+#' If no similar comics are found, an empty data frame is returned invisibly.
+#' The function will stop with an error if the embeddings have not been built.
+#'
+#' @export
+similarXKCD <- function(query, n = 5L) {
+
+  home_dir <- Sys.getenv("HOME")
+  db_dir <- file.path(home_dir, ".RXKCD")
+  vectors_path <- file.path(db_dir, "glove_vectors.rds")
+  embed_path <- file.path(db_dir, "embeddings.rds")
+
+  if (!file.exists(vectors_path) || !file.exists(embed_path)) {
+    stop("Embeddings not found. Please run updateConfig() first.")
+  }
+
+  # Load GloVe word vectors and pre-computed document embeddings
+  word_vectors <- readRDS(vectors_path)
+  embed_matrix <- readRDS(embed_path)
+
+  # Embed the query
+  tokens <- unlist(strsplit(tolower(trimws(query)), "\\s+"))
+  vocab <- rownames(word_vectors)
+  matched <- tokens[tokens %in% vocab]
+
+  if (length(matched) == 0) {
+    message("No matches found.")
+    return(invisible(data.frame(num = integer(), date = character(),
+                                title = character(), alt = character(),
+                                similarity = numeric())))
+  }
+
+  query_vec <- colMeans(word_vectors[matched, , drop = FALSE])
+
+  # Cosine similarity against all comic embeddings
+  norms_comics <- sqrt(rowSums(embed_matrix^2))
+  norm_query <- sqrt(sum(query_vec^2))
+  sims <- as.vector(embed_matrix %*% query_vec) / (norms_comics * norm_query)
+  sims[is.nan(sims)] <- 0
+
+  # Get top n
+  n <- min(n, length(sims))
+  top_idx <- order(sims, decreasing = TRUE)[seq_len(n)]
+  top_nums <- as.integer(rownames(embed_matrix)[top_idx])
+  top_sims <- sims[top_idx]
+
+  # Fetch metadata from DuckDB
+  db_path <- file.path(db_dir, "xkcd.duckdb")
+  con <- DBI::dbConnect(duckdb::duckdb(), dbdir = db_path, read_only = TRUE)
+  on.exit(DBI::dbDisconnect(con))
+
+  placeholders <- paste(rep("?", length(top_nums)), collapse = ", ")
+  sql <- paste0("SELECT num, date, title, alt FROM xkcd WHERE num IN (", placeholders, ")")
+  meta <- DBI::dbGetQuery(con, sql, params = as.list(top_nums))
+
+  # Merge similarity scores and sort
+  meta$similarity <- top_sims[match(meta$num, top_nums)]
+  meta <- meta[order(meta$similarity, decreasing = TRUE), ]
+  rownames(meta) <- NULL
+
+  return(meta)
 }

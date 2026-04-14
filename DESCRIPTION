@@ -9,7 +9,7 @@ Description: Visualize your favorite XKCD comic strip directly from R.
     Includes live archive searching via local DuckDB and JSON API integration.
 License: GPL-2
 Encoding: UTF-8
-Imports: 
+Imports:
     jsonlite,
     httr,
     jpeg,
@@ -17,5 +17,6 @@ Imports:
     graphics,
     utils,
     DBI,
-    duckdb
+    duckdb,
+    text2vec
 RoxygenNote: 7.3.3
