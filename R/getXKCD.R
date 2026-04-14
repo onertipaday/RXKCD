@@ -161,9 +161,8 @@ updateConfig <- function() {
   
   if (length(missing_ids) == 0) {
     message("Database is up to date!")
-    return(invisible(TRUE))
-  }
-  
+  } else {
+
   message(paste("Found", length(missing_ids), "missing comics. Downloading metadata..."))
   
   # 3. Batch Download
@@ -226,22 +225,34 @@ updateConfig <- function() {
     message("No valid data retrieved.")
   }
 
+  } # end if (missing_ids)
+
+  # 5. Build full-text search index
+  DBI::dbExecute(con, "INSTALL fts")
+  DBI::dbExecute(con, "LOAD fts")
+  tryCatch(DBI::dbExecute(con, "PRAGMA drop_fts_index('xkcd')"), error = function(e) NULL)
+  DBI::dbExecute(con, "PRAGMA create_fts_index('xkcd', 'num', 'title', 'alt', 'transcript',
+                 stemmer = 'porter', stopwords = 'english', lower = 1, strip_accents = 1)")
+  message("Full-text search index updated.")
+
   return(invisible(TRUE))
 }
 
 #' Search XKCD comics
 #'
 #' @description
-#' Searches the local DuckDB cache for comics whose title, alt text, or transcript
-#' match the given query string (case-insensitive). Run \code{updateConfig()} first
-#' to populate the database.
+#' Searches the local DuckDB cache using full-text search (BM25 ranking) across
+#' comic titles, alt text, and transcripts. Results are ranked by relevance.
+#' Supports stemming (e.g., "running" matches "run") and stopword removal.
+#' Run \code{updateConfig()} first to populate the database and build the search index.
 #'
 #' @param query A single string to search for in comic titles, alt text, and transcripts.
 #'
 #' @returns
-#' A data frame containing matching XKCD comics, ordered by comic number in descending order.
+#' A data frame containing matching XKCD comics with columns \code{num}, \code{date},
+#' \code{title}, \code{alt}, and \code{score} (BM25 relevance), ordered by relevance.
 #' If no matches are found, an empty data frame is returned invisibly, and a message is printed.
-#' The function will stop with an error if the local database is not found.
+#' The function will stop with an error if the local database or search index is not found.
 #'
 #' @export
 searchXKCD <- function(query) {
@@ -256,14 +267,23 @@ searchXKCD <- function(query) {
   con <- DBI::dbConnect(duckdb::duckdb(), dbdir = db_path, read_only = TRUE)
   on.exit(DBI::dbDisconnect(con))
 
-  # Search across title, alt text, and transcript using parameterized ILIKE
-  sql <- "SELECT num, date, title, alt FROM xkcd
-          WHERE title ILIKE ?
-             OR alt ILIKE ?
-             OR transcript ILIKE ?
-          ORDER BY num DESC"
-  pattern <- paste0("%", query, "%")
-  res <- DBI::dbGetQuery(con, sql, params = list(pattern, pattern, pattern))
+  # Ensure FTS extension and index are available
+  has_fts <- tryCatch({
+    DBI::dbExecute(con, "LOAD fts")
+    DBI::dbGetQuery(con, "SELECT COUNT(*) AS n FROM duckdb_tables() WHERE schema_name = 'fts_main_xkcd'")$n > 0
+  }, error = function(e) FALSE)
+
+  if (!has_fts) {
+    stop("Full-text search index not found. Please run updateConfig() to build it.")
+  }
+
+  # Full-text search with BM25 ranking across title, alt text, and transcript
+  sql <- "SELECT x.num, x.date, x.title, x.alt,
+                 fts_main_xkcd.match_bm25(x.num, ?) AS score
+          FROM xkcd x
+          WHERE score IS NOT NULL
+          ORDER BY score DESC"
+  res <- DBI::dbGetQuery(con, sql, params = list(query))
   
   if (nrow(res) == 0) {
     message("No matches found.")
