@@ -11,3 +11,6 @@
 ^training$
 ^memory$
 ^\.pytest_cache$
+^CRAN-SUBMISSION$
+^cran-comments\.md$
+^rxkcd-talk\.html$

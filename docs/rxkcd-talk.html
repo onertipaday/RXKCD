@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RXKCD — R Package Talk</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+/* ==========================================
+   VIEWPORT FITTING: MANDATORY BASE STYLES
+   ========================================== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  overflow-x: hidden;
+}
+
+html {
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+}
+
+.slide {
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.slide-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  max-height: 100%;
+  overflow: hidden;
+  padding: var(--slide-padding);
+}
+
+:root {
+  --title-size:  clamp(1.5rem,  5vw,  4rem);
+  --h2-size:     clamp(1.25rem, 3.5vw, 2.5rem);
+  --h3-size:     clamp(1rem,    2.5vw, 1.75rem);
+  --body-size:   clamp(0.75rem, 1.5vw, 1.125rem);
+  --small-size:  clamp(0.65rem, 1vw,   0.875rem);
+
+  --slide-padding: clamp(1rem, 4vw, 4rem);
+  --content-gap:   clamp(0.5rem, 2vw, 2rem);
+  --element-gap:   clamp(0.25rem, 1vw, 1rem);
+
+  /* Terminal Green theme */
+  --bg:       #0d1117;
+  --bg2:      #0a0f14;
+  --green:    #39ff6e;
+  --green-dim:#1a7a38;
+  --text:     #e6f4ea;
+  --text-dim: rgba(230,244,234,0.45);
+  --border:   rgba(57,255,110,0.18);
+  --glow:     rgba(57,255,110,0.35);
+}
+
+@media (max-height: 700px) {
+  :root {
+    --slide-padding: clamp(0.75rem, 3vw, 2rem);
+    --content-gap:   clamp(0.4rem, 1.5vw, 1rem);
+    --title-size:    clamp(1.25rem, 4.5vw, 2.5rem);
+    --h2-size:       clamp(1rem,   3vw,   1.75rem);
+  }
+}
+
+@media (max-height: 600px) {
+  :root {
+    --slide-padding: clamp(0.5rem, 2.5vw, 1.5rem);
+    --content-gap:   clamp(0.3rem, 1vw, 0.75rem);
+    --title-size:    clamp(1.1rem, 4vw, 2rem);
+    --body-size:     clamp(0.7rem, 1.2vw, 0.95rem);
+  }
+  .nav-dots, .keyboard-hint, .decorative { display: none; }
+}
+
+@media (max-height: 500px) {
+  :root {
+    --slide-padding: clamp(0.4rem, 2vw, 1rem);
+    --title-size:    clamp(1rem, 3.5vw, 1.5rem);
+    --h2-size:       clamp(0.9rem, 2.5vw, 1.25rem);
+    --body-size:     clamp(0.65rem, 1vw, 0.85rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.2s !important;
+  }
+  html { scroll-behavior: auto; }
+}
+
+/* ==========================================
+   GLOBAL THEME
+   ========================================== */
+body {
+  font-family: 'JetBrains Mono', monospace;
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* scan-line overlay on every slide */
+.slide::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(57,255,110,0.013) 2px,
+    rgba(57,255,110,0.013) 4px
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ==========================================
+   NAVIGATION UI
+   ========================================== */
+.nav-dots {
+  position: fixed;
+  right: clamp(0.75rem, 1.5vw, 1.25rem);
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  z-index: 100;
+}
+
+.nav-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--green-dim);
+  cursor: pointer;
+  transition: background 0.3s, box-shadow 0.3s, transform 0.3s;
+}
+
+.nav-dot.active {
+  background: var(--green);
+  box-shadow: 0 0 8px var(--glow);
+  transform: scale(1.4);
+}
+
+.slide-counter {
+  position: fixed;
+  bottom: clamp(0.75rem, 1.5vw, 1.25rem);
+  right: clamp(0.75rem, 1.5vw, 1.25rem);
+  font-size: var(--small-size);
+  color: rgba(57,255,110,0.3);
+  z-index: 100;
+  letter-spacing: 0.1em;
+}
+
+.keyboard-hint {
+  position: fixed;
+  bottom: clamp(0.75rem, 1.5vw, 1.25rem);
+  left: clamp(0.75rem, 1.5vw, 1.25rem);
+  font-size: clamp(0.5rem, 0.75vw, 0.65rem);
+  color: rgba(57,255,110,0.2);
+  z-index: 100;
+  letter-spacing: 0.12em;
+}
+
+/* ==========================================
+   REVEAL ANIMATIONS
+   ========================================== */
+.reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.55s ease, transform 0.55s ease;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.22s; }
+.reveal-delay-3 { transition-delay: 0.34s; }
+.reveal-delay-4 { transition-delay: 0.46s; }
+.reveal-delay-5 { transition-delay: 0.58s; }
+
+/* ==========================================
+   SHARED COMPONENTS
+   ========================================== */
+.badge {
+  display: inline-block;
+  background: rgba(57,255,110,0.08);
+  border: 1px solid var(--border);
+  color: var(--green);
+  font-size: var(--small-size);
+  padding: 0.3em 0.8em;
+  letter-spacing: 0.14em;
+}
+
+.eyebrow {
+  font-size: var(--small-size);
+  color: rgba(57,255,110,0.5);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+}
+
+.rule {
+  width: 100%;
+  height: 1px;
+  background: var(--border);
+  margin: var(--element-gap) 0;
+}
+
+.code-block {
+  background: rgba(57,255,110,0.05);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--green);
+  padding: clamp(0.6rem, 1.2vw, 1rem) clamp(0.8rem, 1.5vw, 1.4rem);
+  font-size: clamp(0.65rem, 1.2vw, 0.9rem);
+  color: var(--text);
+  line-height: 1.85;
+}
+
+.kw  { color: var(--green); }
+.fn  { color: #7ee787; }
+.str { color: #a5d6ff; }
+.num { color: #ffa657; }
+.cm  { color: var(--text-dim); font-style: italic; }
+.op  { color: rgba(57,255,110,0.6); }
+
+.tag {
+  display: inline-block;
+  border: 1px solid var(--border);
+  color: var(--green);
+  font-size: clamp(0.55rem, 0.85vw, 0.7rem);
+  padding: 0.2em 0.6em;
+  letter-spacing: 0.1em;
+  margin-right: 0.4em;
+}
+
+/* ==========================================
+   SLIDE 1: TITLE
+   ========================================== */
+#slide-1 {
+  background: var(--bg);
+  align-items: flex-start;
+  justify-content: center;
+}
+
+#slide-1 .slide-content {
+  justify-content: center;
+  gap: var(--content-gap);
+}
+
+#slide-1 .prompt {
+  font-size: var(--small-size);
+  color: var(--green);
+  opacity: 0.6;
+  letter-spacing: 0.08em;
+  animation: blink-cursor 1.2s step-end infinite;
+}
+
+@keyframes blink-cursor { 50% { opacity: 0.15; } }
+
+#slide-1 h1 {
+  font-size: clamp(3rem, 10vw, 7rem);
+  font-weight: 700;
+  color: var(--green);
+  line-height: 0.95;
+  letter-spacing: -0.01em;
+  text-shadow: 0 0 30px var(--glow), 0 0 80px rgba(57,255,110,0.15);
+}
+
+#slide-1 .subtitle {
+  font-size: clamp(0.8rem, 1.8vw, 1.2rem);
+  color: rgba(57,255,110,0.55);
+  letter-spacing: 0.05em;
+  max-width: 50ch;
+}
+
+#slide-1 .meta-row {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+#slide-1 .meta-row span {
+  font-size: var(--small-size);
+  color: rgba(57,255,110,0.35);
+  letter-spacing: 0.12em;
+}
+
+/* glow blob right */
+#slide-1 .glow-blob {
+  position: absolute;
+  right: -5vw;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 45vw;
+  height: 70vh;
+  background: radial-gradient(ellipse, rgba(57,255,110,0.07) 0%, transparent 65%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* deco lines right */
+#slide-1 .deco-lines {
+  position: absolute;
+  right: clamp(3rem, 10vw, 10rem);
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  opacity: 0.2;
+  z-index: 1;
+}
+
+#slide-1 .deco-lines span {
+  display: block;
+  height: 1px;
+  background: var(--green);
+}
+
+/* ==========================================
+   SLIDE 2: WHAT IS XKCD
+   ========================================== */
+#slide-2 {
+  background: var(--bg2);
+}
+
+#slide-2 .slide-content {
+  gap: var(--content-gap);
+}
+
+.stat-row {
+  display: flex;
+  gap: clamp(1rem, 3vw, 3rem);
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+.stat-box {
+  background: rgba(57,255,110,0.05);
+  border: 1px solid var(--border);
+  padding: clamp(0.75rem, 1.5vw, 1.25rem) clamp(1rem, 2vw, 1.75rem);
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: clamp(100px, 15vw, 160px);
+}
+
+.stat-box .stat-num {
+  font-size: clamp(1.5rem, 4vw, 3rem);
+  font-weight: 700;
+  color: var(--green);
+  line-height: 1;
+  text-shadow: 0 0 12px var(--glow);
+}
+
+.stat-box .stat-label {
+  font-size: var(--small-size);
+  color: var(--text-dim);
+  letter-spacing: 0.1em;
+}
+
+/* ==========================================
+   SLIDE 3: ARCHITECTURE
+   ========================================== */
+#slide-3 {
+  background: var(--bg);
+}
+
+.arch-diagram {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.75rem, 2vw, 1.75rem);
+  flex-wrap: nowrap;
+  overflow: hidden;
+  margin-top: var(--element-gap);
+}
+
+.arch-box {
+  flex: 1;
+  min-width: 0;
+  background: rgba(57,255,110,0.05);
+  border: 1px solid var(--border);
+  padding: clamp(0.6rem, 1.2vw, 1rem) clamp(0.75rem, 1.5vw, 1.25rem);
+  text-align: center;
+}
+
+.arch-box .arch-icon {
+  font-size: clamp(1rem, 2.5vw, 1.8rem);
+  margin-bottom: 0.3rem;
+}
+
+.arch-box .arch-name {
+  font-size: clamp(0.6rem, 1.1vw, 0.85rem);
+  color: var(--green);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  display: block;
+}
+
+.arch-box .arch-detail {
+  font-size: clamp(0.5rem, 0.85vw, 0.7rem);
+  color: var(--text-dim);
+  display: block;
+  margin-top: 0.2rem;
+  letter-spacing: 0.04em;
+}
+
+.arch-arrow {
+  color: var(--green);
+  font-size: clamp(0.8rem, 1.5vw, 1.2rem);
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+
+/* ==========================================
+   SLIDE 4: getXKCD
+   ========================================== */
+#slide-4 {
+  background: var(--bg2);
+}
+
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(1rem, 3vw, 3rem);
+  margin-top: var(--element-gap);
+  flex: 1;
+  align-items: center;
+  overflow: hidden;
+}
+
+@media (max-width: 700px) {
+  .two-col { grid-template-columns: 1fr; }
+}
+
+.func-sig {
+  font-size: clamp(0.7rem, 1.3vw, 0.95rem);
+  color: var(--green);
+  margin-bottom: var(--element-gap);
+  padding: 0.4em 0.8em;
+  background: rgba(57,255,110,0.06);
+  border-left: 3px solid var(--green);
+  letter-spacing: 0.04em;
+}
+
+.bullet-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.4rem, 1vh, 0.75rem);
+}
+
+.bullet-list li {
+  font-size: var(--body-size);
+  color: var(--text);
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  line-height: 1.5;
+}
+
+.bullet-list li::before {
+  content: '▶';
+  color: var(--green);
+  font-size: 0.6em;
+  flex-shrink: 0;
+  margin-top: 0.35em;
+}
+
+.bullet-list li .dim { color: var(--text-dim); }
+
+/* ==========================================
+   SLIDE 5: updateConfig
+   ========================================== */
+#slide-5 {
+  background: var(--bg);
+}
+
+.flow-steps {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.4rem, 1vw, 0.75rem);
+  margin-top: var(--element-gap);
+  flex: 1;
+  justify-content: center;
+}
+
+.flow-step {
+  display: flex;
+  align-items: flex-start;
+  gap: clamp(0.75rem, 1.5vw, 1.25rem);
+  background: rgba(57,255,110,0.04);
+  border: 1px solid var(--border);
+  padding: clamp(0.5rem, 1vw, 0.85rem) clamp(0.75rem, 1.5vw, 1.25rem);
+}
+
+.flow-step-num {
+  font-size: clamp(0.9rem, 1.8vw, 1.4rem);
+  font-weight: 700;
+  color: var(--green);
+  flex-shrink: 0;
+  line-height: 1.4;
+  min-width: 1.5rem;
+  text-shadow: 0 0 8px var(--glow);
+}
+
+.flow-step-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.flow-step-title {
+  font-size: var(--body-size);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.flow-step-desc {
+  font-size: var(--small-size);
+  color: var(--text-dim);
+  letter-spacing: 0.03em;
+}
+
+/* ==========================================
+   SLIDE 6: searchXKCD
+   ========================================== */
+#slide-6 {
+  background: var(--bg2);
+}
+
+.search-demo {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.5rem, 1.2vw, 1rem);
+  margin-top: var(--element-gap);
+  flex: 1;
+  justify-content: center;
+}
+
+.search-query {
+  font-size: clamp(0.7rem, 1.3vw, 0.95rem);
+  color: var(--text);
+  padding: 0.5em 0.9em;
+  background: rgba(57,255,110,0.05);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--green);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.search-query .prompt-sym { color: var(--green); }
+
+.result-table {
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.result-row {
+  display: grid;
+  grid-template-columns: 3rem 1fr 1fr auto;
+  gap: 0;
+  border-bottom: 1px solid rgba(57,255,110,0.08);
+  font-size: clamp(0.55rem, 1vw, 0.8rem);
+}
+
+.result-row:last-child { border-bottom: none; }
+
+.result-row.header {
+  background: rgba(57,255,110,0.08);
+  color: rgba(57,255,110,0.6);
+  font-size: clamp(0.5rem, 0.85vw, 0.7rem);
+  letter-spacing: 0.1em;
+}
+
+.result-row > div {
+  padding: clamp(0.3rem, 0.6vw, 0.5rem) clamp(0.5rem, 1vw, 0.75rem);
+  border-right: 1px solid rgba(57,255,110,0.08);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.result-row > div:last-child { border-right: none; }
+
+.score-bar {
+  display: inline-block;
+  height: 6px;
+  background: var(--green);
+  opacity: 0.7;
+  border-radius: 1px;
+  vertical-align: middle;
+  margin-right: 0.3em;
+}
+
+/* ==========================================
+   SLIDE 7: similarXKCD
+   ========================================== */
+#slide-7 {
+  background: var(--bg);
+}
+
+.embed-diagram {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.75rem, 2vw, 1.5rem);
+  margin: var(--element-gap) 0;
+  overflow: hidden;
+}
+
+.embed-box {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.embed-circle {
+  width: clamp(50px, 7vw, 80px);
+  height: clamp(50px, 7vw, 80px);
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(0.5rem, 0.9vw, 0.75rem);
+  color: var(--green);
+  background: rgba(57,255,110,0.04);
+  letter-spacing: 0.05em;
+  text-align: center;
+  line-height: 1.3;
+  padding: 0.3em;
+}
+
+.embed-label {
+  font-size: clamp(0.5rem, 0.8vw, 0.65rem);
+  color: var(--text-dim);
+  letter-spacing: 0.08em;
+  text-align: center;
+}
+
+.sim-results {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.3rem, 0.7vw, 0.5rem);
+  flex: 1;
+  justify-content: center;
+}
+
+.sim-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: clamp(0.55rem, 1vw, 0.8rem);
+}
+
+.sim-row .sim-num {
+  color: var(--green);
+  min-width: 2.5rem;
+  flex-shrink: 0;
+}
+
+.sim-row .sim-title {
+  flex: 1;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sim-row .sim-score {
+  color: var(--text-dim);
+  flex-shrink: 0;
+}
+
+.sim-bar-wrap {
+  flex-shrink: 0;
+  width: clamp(40px, 8vw, 80px);
+  height: 4px;
+  background: rgba(57,255,110,0.1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.sim-bar {
+  height: 100%;
+  background: var(--green);
+  opacity: 0.7;
+  border-radius: 2px;
+}
+
+/* ==========================================
+   SLIDE 8: INSTALLATION
+   ========================================== */
+#slide-8 {
+  background: var(--bg2);
+}
+
+.install-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(0.75rem, 2vw, 1.75rem);
+  margin-top: var(--element-gap);
+  flex: 1;
+  align-content: center;
+}
+
+@media (max-width: 600px) {
+  .install-grid { grid-template-columns: 1fr; }
+}
+
+.install-card {
+  background: rgba(57,255,110,0.04);
+  border: 1px solid var(--border);
+  padding: clamp(0.75rem, 1.5vw, 1.25rem);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.install-card .card-head {
+  font-size: var(--small-size);
+  color: var(--green);
+  letter-spacing: 0.15em;
+  font-weight: 600;
+}
+
+.link-row {
+  display: flex;
+  gap: clamp(0.5rem, 1.5vw, 1.25rem);
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+.link-item {
+  font-size: var(--small-size);
+  color: var(--text-dim);
+  letter-spacing: 0.06em;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.link-item::before { content: '→'; color: var(--green); }
+
+/* ==========================================
+   SLIDE 9: WRAP-UP
+   ========================================== */
+#slide-9 {
+  background: var(--bg);
+  align-items: center;
+  justify-content: center;
+}
+
+#slide-9 .slide-content {
+  align-items: flex-start;
+  gap: var(--content-gap);
+}
+
+#slide-9 h1 {
+  font-size: clamp(2rem, 7vw, 5rem);
+  color: var(--green);
+  font-weight: 700;
+  text-shadow: 0 0 30px var(--glow);
+  line-height: 1.05;
+}
+
+.summary-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.4rem, 1vh, 0.7rem);
+}
+
+.summary-list li {
+  font-size: var(--body-size);
+  color: var(--text);
+  display: flex;
+  align-items: baseline;
+  gap: 0.7rem;
+}
+
+.summary-list li .check {
+  color: var(--green);
+  font-size: 0.85em;
+  flex-shrink: 0;
+}
+
+.qr-area {
+  position: absolute;
+  bottom: var(--slide-padding);
+  right: var(--slide-padding);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.4rem;
+  z-index: 1;
+}
+
+.qr-placeholder {
+  width: clamp(60px, 8vw, 90px);
+  height: clamp(60px, 8vw, 90px);
+  border: 1px solid var(--border);
+  background: rgba(57,255,110,0.04);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(0.5rem, 0.8vw, 0.65rem);
+  color: var(--text-dim);
+  text-align: center;
+  letter-spacing: 0.06em;
+  line-height: 1.4;
+}
+
+#slide-9 .glow-blob {
+  position: absolute;
+  left: -10vw;
+  bottom: -10vh;
+  width: 60vw;
+  height: 60vh;
+  background: radial-gradient(ellipse, rgba(57,255,110,0.06) 0%, transparent 65%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+</style>
+</head>
+<body>
+
+<!-- NAV DOTS -->
+<nav class="nav-dots" aria-label="Slide navigation">
+  <div class="nav-dot active" data-slide="0" role="button" tabindex="0" aria-label="Slide 1"></div>
+  <div class="nav-dot" data-slide="1" role="button" tabindex="0" aria-label="Slide 2"></div>
+  <div class="nav-dot" data-slide="2" role="button" tabindex="0" aria-label="Slide 3"></div>
+  <div class="nav-dot" data-slide="3" role="button" tabindex="0" aria-label="Slide 4"></div>
+  <div class="nav-dot" data-slide="4" role="button" tabindex="0" aria-label="Slide 5"></div>
+  <div class="nav-dot" data-slide="5" role="button" tabindex="0" aria-label="Slide 6"></div>
+  <div class="nav-dot" data-slide="6" role="button" tabindex="0" aria-label="Slide 7"></div>
+  <div class="nav-dot" data-slide="7" role="button" tabindex="0" aria-label="Slide 8"></div>
+  <div class="nav-dot" data-slide="8" role="button" tabindex="0" aria-label="Slide 9"></div>
+</nav>
+
+<div class="slide-counter">01 / 09</div>
+<div class="keyboard-hint">↑↓ / ←→ / Space · Navigate</div>
+
+<main>
+
+<!-- =================== SLIDE 1: TITLE =================== -->
+<section class="slide" id="slide-1" aria-label="Title slide">
+  <div class="glow-blob"></div>
+  <div class="deco-lines decorative" aria-hidden="true">
+    <span style="width:clamp(60px,12vw,150px)"></span>
+    <span style="width:clamp(40px,8vw,100px)"></span>
+    <span style="width:clamp(70px,14vw,180px)"></span>
+    <span style="width:clamp(30px,6vw,80px)"></span>
+    <span style="width:clamp(55px,10vw,130px)"></span>
+  </div>
+  <div class="slide-content" style="z-index:1; gap: var(--content-gap);">
+    <div class="prompt reveal">$ library(RXKCD)_</div>
+    <h1 class="reveal reveal-delay-1">RXKCD</h1>
+    <p class="subtitle reveal reveal-delay-2">Get, search &amp; discover XKCD comics directly from R</p>
+    <div class="rule reveal reveal-delay-3"></div>
+    <div class="meta-row reveal reveal-delay-4">
+      <span class="badge">v2.0.1</span>
+      <span>Paolo Sonego · Mikko Korpela</span>
+      <span>CRAN · GPL-2</span>
+    </div>
+  </div>
+</section>
+
+<!-- =================== SLIDE 2: WHAT IS XKCD =================== -->
+<section class="slide" id="slide-2" aria-label="What is XKCD">
+  <div class="slide-content" style="z-index:1; gap: var(--content-gap);">
+    <div class="eyebrow reveal">Context</div>
+    <h2 style="font-size:var(--h2-size); color:var(--green); font-weight:700; line-height:1.1;" class="reveal reveal-delay-1">What is XKCD?</h2>
+    <p style="font-size:var(--body-size); color:var(--text); max-width:60ch; line-height:1.65;" class="reveal reveal-delay-2">
+      A webcomic by Randall Munroe — "romance, sarcasm, math, and language."<br>
+      Beloved by the programming community for its wit, precision, and occasional existential dread.
+    </p>
+    <div class="stat-row reveal reveal-delay-3">
+      <div class="stat-box">
+        <span class="stat-num">3000+</span>
+        <span class="stat-label">comics published</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-num">2006</span>
+        <span class="stat-label">first published</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-num">JSON</span>
+        <span class="stat-label">public API</span>
+      </div>
+    </div>
+    <div class="rule reveal reveal-delay-4"></div>
+    <p style="font-size:var(--body-size); color:var(--text-dim);" class="reveal reveal-delay-4">
+      RXKCD brings the entire archive into your R session — fetch, search, and explore.
+    </p>
+  </div>
+</section>
+
+<!-- =================== SLIDE 3: ARCHITECTURE =================== -->
+<section class="slide" id="slide-3" aria-label="Architecture">
+  <div class="slide-content" style="z-index:1; gap: var(--content-gap);">
+    <div class="eyebrow reveal">How it works</div>
+    <h2 style="font-size:var(--h2-size); color:var(--green); font-weight:700; line-height:1.1;" class="reveal reveal-delay-1">Architecture</h2>
+
+    <div class="arch-diagram reveal reveal-delay-2" aria-label="Data flow diagram">
+      <div class="arch-box">
+        <div class="arch-icon">🌐</div>
+        <span class="arch-name">XKCD API</span>
+        <span class="arch-detail">xkcd.com/N/info.0.json</span>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-box">
+        <div class="arch-icon">⚙</div>
+        <span class="arch-name">updateConfig()</span>
+        <span class="arch-detail">incremental sync</span>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-box">
+        <div class="arch-icon">🦆</div>
+        <span class="arch-name">DuckDB</span>
+        <span class="arch-detail">~/.RXKCD/xkcd.duckdb</span>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-box">
+        <div class="arch-icon">🔍</div>
+        <span class="arch-name">search()</span>
+        <span class="arch-detail">BM25 + GloVe</span>
+      </div>
+    </div>
+
+    <div class="rule reveal reveal-delay-3"></div>
+
+    <ul class="bullet-list reveal reveal-delay-3">
+      <li>Schema: <code style="color:var(--green)">xkcd(num, title, date, alt, img, transcript)</code></li>
+      <li>Chunk-downloads in batches of 100 — caps peak memory</li>
+      <li>Rate-limited at 0.05 s/request — polite to the API</li>
+      <li>Comic #404 skipped — <span class="dim">it intentionally does not exist</span></li>
+    </ul>
+  </div>
+</section>
+
+<!-- =================== SLIDE 4: getXKCD =================== -->
+<section class="slide" id="slide-4" aria-label="getXKCD function">
+  <div class="slide-content" style="z-index:1; gap: var(--content-gap);">
+    <div class="eyebrow reveal">Function 1 of 4</div>
+    <h2 style="font-size:var(--h2-size); color:var(--green); font-weight:700;" class="reveal reveal-delay-1">getXKCD()</h2>
+    <div class="two-col">
+      <div class="reveal reveal-delay-2">
+        <div class="func-sig">getXKCD(which, display, html, saveImg)</div>
+        <ul class="bullet-list">
+          <li>Always hits the <span class="kw">live XKCD API</span> — no local DB needed</li>
+          <li><code class="str">"current"</code> · <code class="str">"random"</code> · comic number</li>
+          <li>Returns list: num, title, date, img, alt, transcript</li>
+          <li>Optionally display inline or save image to disk</li>
+        </ul>
+      </div>
+      <div class="reveal reveal-delay-3">
+        <div class="code-block">
+<span class="cm"># latest comic</span>
+<span class="fn">getXKCD</span>(<span class="str">"current"</span>)
+
+<span class="cm"># random comic</span>
+<span class="fn">getXKCD</span>(<span class="str">"random"</span>)
+
+<span class="cm"># specific number</span>
+<span class="fn">getXKCD</span>(<span class="num">353</span>)  <span class="cm"># Python!</span>
+
+<span class="cm"># save to file</span>
+<span class="fn">getXKCD</span>(<span class="num">1</span>, saveImg <span class="op">=</span> <span class="kw">TRUE</span>)
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =================== SLIDE 5: updateConfig =================== -->
+<section class="slide" id="slide-5" aria-label="updateConfig function">
+  <div class="slide-content" style="z-index:1; gap: var(--content-gap);">
+    <div class="eyebrow reveal">Function 2 of 4</div>
+    <h2 style="font-size:var(--h2-size); color:var(--green); font-weight:700;" class="reveal reveal-delay-1">updateConfig()</h2>
+    <p style="font-size:var(--body-size); color:var(--text-dim);" class="reveal reveal-delay-2">Smart incremental sync — downloads only what you are missing.</p>
+
+    <div class="flow-steps reveal reveal-delay-2">
+      <div class="flow-step">
+        <div class="flow-step-num">01</div>
+        <div class="flow-step-body">
+          <span class="flow-step-title">Connect to local DuckDB</span>
+          <span class="flow-step-desc">Auto-creates ~/.RXKCD/xkcd.duckdb on first run</span>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-step-num">02</div>
+        <div class="flow-step-body">
+          <span class="flow-step-title">Diff against live API</span>
+          <span class="flow-step-desc">Fetches max comic number, finds missing IDs (skips #404)</span>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-step-num">03</div>
+        <div class="flow-step-body">
+          <span class="flow-step-title">Chunk-download &amp; append</span>
+          <span class="flow-step-desc">Batches of 100 comics, 0.05 s rate limit per request</span>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-step-num">04</div>
+        <div class="flow-step-body">
+          <span class="flow-step-title">Rebuild FTS index &amp; GloVe embeddings</span>
+          <span class="flow-step-desc">BM25 index + 50-dim GloVe vectors from text2vec</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =================== SLIDE 6: searchXKCD =================== -->
+<section class="slide" id="slide-6" aria-label="searchXKCD function">
+  <div class="slide-content" style="z-index:1; gap: var(--content-gap);">
+    <div class="eyebrow reveal">Function 3 of 4</div>
+    <h2 style="font-size:var(--h2-size); color:var(--green); font-weight:700;" class="reveal reveal-delay-1">searchXKCD()</h2>
+    <p style="font-size:var(--body-size); color:var(--text-dim);" class="reveal reveal-delay-2">Full-text BM25 search across title, alt text, and transcript. Results ranked by relevance.</p>
+
+    <div class="search-demo reveal reveal-delay-3">
+      <div class="search-query">
+        <span class="prompt-sym">&gt;</span>
+        <span><span class="fn">searchXKCD</span>(<span class="str">"significant"</span>)</span>
+      </div>
+
+      <div class="result-table" role="table" aria-label="Search results">
+        <div class="result-row header" role="row">
+          <div role="columnheader">num</div>
+          <div role="columnheader">title</div>
+          <div role="columnheader">alt (excerpt)</div>
+          <div role="columnheader">score</div>
+        </div>
+        <div class="result-row" role="row">
+          <div>882</div>
+          <div>Significant</div>
+          <div>So, uh, we did the x-ray…</div>
+          <div><span class="score-bar" style="width:42px"></span>9.1</div>
+        </div>
+        <div class="result-row" role="row">
+          <div>1478</div>
+          <div>P-Values</div>
+          <div>If all else fails, use…</div>
+          <div><span class="score-bar" style="width:32px"></span>7.4</div>
+        </div>
+        <div class="result-row" role="row">
+          <div>2400</div>
+          <div>Statistics</div>
+          <div>…technically statistically…</div>
+          <div><span class="score-bar" style="width:24px"></span>5.8</div>
+        </div>
+        <div class="result-row" role="row">
+          <div>1462</div>
+          <div>Blind Trials</div>
+          <div>…significant at p&lt;0.05…</div>
+          <div><span class="score-bar" style="width:18px"></span>4.2</div>
+        </div>
+      </div>
+
+      <div class="code-block" style="margin-top:0.25rem;">
+<span class="fn">searchXKCD</span>(<span class="str">"python"</span>)   <span class="cm"># full-text BM25</span>
+<span class="fn">searchXKCD</span>(<span class="str">"climate change"</span>)
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =================== SLIDE 7: similarXKCD =================== -->
+<section class="slide" id="slide-7" aria-label="similarXKCD function">
+  <div class="slide-content" style="z-index:1; gap: var(--content-gap);">
+    <div class="eyebrow reveal">Function 4 of 4</div>
+    <h2 style="font-size:var(--h2-size); color:var(--green); font-weight:700;" class="reveal reveal-delay-1">similarXKCD()</h2>
+    <p style="font-size:var(--body-size); color:var(--text-dim);" class="reveal reveal-delay-2">Semantic search via local GloVe embeddings. Find comics by <em>meaning</em>, not just keywords.</p>
+
+    <div class="two-col reveal reveal-delay-3">
+      <div>
+        <div class="embed-diagram" aria-label="Embedding diagram" style="margin-bottom: var(--element-gap);">
+          <div class="embed-box">
+            <div class="embed-circle">"feeling<br>lonely"</div>
+            <span class="embed-label">query</span>
+          </div>
+          <div class="arch-arrow">→</div>
+          <div class="embed-box">
+            <div class="embed-circle" style="font-size:clamp(0.45rem,0.75vw,0.6rem)">GloVe<br>50-dim</div>
+            <span class="embed-label">embed</span>
+          </div>
+          <div class="arch-arrow">→</div>
+          <div class="embed-box">
+            <div class="embed-circle" style="font-size:clamp(0.45rem,0.75vw,0.6rem)">cosine<br>sim</div>
+            <span class="embed-label">rank</span>
+          </div>
+        </div>
+        <div class="code-block">
+<span class="fn">similarXKCD</span>(<span class="str">"feeling lonely"</span>)
+<span class="fn">similarXKCD</span>(<span class="str">"space exploration"</span>,
+             n <span class="op">=</span> <span class="num">10</span>)
+        </div>
+      </div>
+
+      <div class="sim-results">
+        <div class="sim-row">
+          <span class="sim-num">#483</span>
+          <span class="sim-title">Fiction Rule of Thumb</span>
+          <div class="sim-bar-wrap"><div class="sim-bar" style="width:88%"></div></div>
+          <span class="sim-score">0.88</span>
+        </div>
+        <div class="sim-row">
+          <span class="sim-num">#915</span>
+          <span class="sim-title">Connoisseur</span>
+          <div class="sim-bar-wrap"><div class="sim-bar" style="width:81%"></div></div>
+          <span class="sim-score">0.81</span>
+        </div>
+        <div class="sim-row">
+          <span class="sim-num">#721</span>
+          <span class="sim-title">Flatland</span>
+          <div class="sim-bar-wrap"><div class="sim-bar" style="width:76%"></div></div>
+          <span class="sim-score">0.76</span>
+        </div>
+        <div class="sim-row">
+          <span class="sim-num">#1314</span>
+          <span class="sim-title">Dating Pools</span>
+          <div class="sim-bar-wrap"><div class="sim-bar" style="width:71%"></div></div>
+          <span class="sim-score">0.71</span>
+        </div>
+        <div class="sim-row">
+          <span class="sim-num">#520</span>
+          <span class="sim-title">Alien Abduction</span>
+          <div class="sim-bar-wrap"><div class="sim-bar" style="width:65%"></div></div>
+          <span class="sim-score">0.65</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =================== SLIDE 8: INSTALLATION =================== -->
+<section class="slide" id="slide-8" aria-label="Installation">
+  <div class="slide-content" style="z-index:1; gap: var(--content-gap);">
+    <div class="eyebrow reveal">Get started</div>
+    <h2 style="font-size:var(--h2-size); color:var(--green); font-weight:700;" class="reveal reveal-delay-1">Installation</h2>
+
+    <div class="install-grid reveal reveal-delay-2">
+      <div class="install-card">
+        <div class="card-head">CRAN (stable)</div>
+        <div class="code-block">
+<span class="fn">install.packages</span>(<span class="str">"RXKCD"</span>)
+        </div>
+      </div>
+      <div class="install-card">
+        <div class="card-head">GitHub (latest)</div>
+        <div class="code-block">
+<span class="cm"># install.packages("pak")</span>
+<span class="fn">pak</span>::<span class="fn">pak</span>(<span class="str">"onertipaday/RXKCD"</span>)
+        </div>
+      </div>
+      <div class="install-card" style="grid-column: 1 / -1;">
+        <div class="card-head">Quick start</div>
+        <div class="code-block">
+<span class="kw">library</span>(RXKCD)
+<span class="fn">updateConfig</span>()              <span class="cm"># first run: build cache</span>
+<span class="fn">getXKCD</span>(<span class="str">"current"</span>)          <span class="cm"># display latest</span>
+<span class="fn">searchXKCD</span>(<span class="str">"python"</span>)        <span class="cm"># BM25 search</span>
+<span class="fn">similarXKCD</span>(<span class="str">"feeling lonely"</span>) <span class="cm"># semantic search</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="link-row reveal reveal-delay-3">
+      <div class="link-item">onertipaday.github.io/RXKCD</div>
+      <div class="link-item">github.com/onertipaday/RXKCD</div>
+    </div>
+  </div>
+</section>
+
+<!-- =================== SLIDE 9: WRAP-UP =================== -->
+<section class="slide" id="slide-9" aria-label="Summary">
+  <div class="glow-blob"></div>
+  <div class="slide-content" style="z-index:1; gap: var(--content-gap);">
+    <div class="eyebrow reveal">Summary</div>
+    <h1 class="reveal reveal-delay-1">Thank you.</h1>
+    <div class="rule reveal reveal-delay-2"></div>
+    <ul class="summary-list reveal reveal-delay-3">
+      <li><span class="check">✓</span> Live API fetch — current, random, numbered</li>
+      <li><span class="check">✓</span> Local DuckDB cache — offline, fast, incremental</li>
+      <li><span class="check">✓</span> BM25 full-text search across all comic text</li>
+      <li><span class="check">✓</span> GloVe semantic similarity — search by meaning</li>
+      <li><span class="check">✓</span> On CRAN · GPL-2 · v2.0.1</li>
+    </ul>
+    <div class="reveal reveal-delay-4" style="margin-top:0.5rem;">
+      <span class="badge">install.packages("RXKCD")</span>
+    </div>
+  </div>
+  <div class="qr-area" style="z-index:1;">
+    <div class="qr-placeholder">github/<br>onertipaday/<br>RXKCD</div>
+  </div>
+</section>
+
+</main>
+
+<script>
+/* ==========================================
+   PRESENTATION CONTROLLER
+   ========================================== */
+class PresentationController {
+  constructor() {
+    this.slides = Array.from(document.querySelectorAll('.slide'));
+    this.dots   = Array.from(document.querySelectorAll('.nav-dot'));
+    this.counter = document.querySelector('.slide-counter');
+    this.current = 0;
+    this.total   = this.slides.length;
+    this.scrolling = false;
+
+    this._setupNav();
+    this._setupKeyboard();
+    this._setupWheel();
+    this._setupTouch();
+    this._setupObserver();
+    this._updateUI(0);
+  }
+
+  go(idx) {
+    if (idx < 0 || idx >= this.total) return;
+    this.current = idx;
+    this.slides[idx].scrollIntoView({ behavior: 'smooth', block: 'start' });
+    this._updateUI(idx);
+  }
+
+  next() { this.go(this.current + 1); }
+  prev() { this.go(this.current - 1); }
+
+  _updateUI(idx) {
+    this.dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+    if (this.counter) {
+      const n = String(idx + 1).padStart(2, '0');
+      const t = String(this.total).padStart(2, '0');
+      this.counter.textContent = `${n} / ${t}`;
+    }
+  }
+
+  _setupNav() {
+    this.dots.forEach(dot => {
+      dot.addEventListener('click', () => this.go(+dot.dataset.slide));
+      dot.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') this.go(+dot.dataset.slide);
+      });
+    });
+  }
+
+  _setupKeyboard() {
+    document.addEventListener('keydown', e => {
+      if (['ArrowDown', 'ArrowRight', ' ', 'PageDown'].includes(e.key)) {
+        e.preventDefault();
+        this.next();
+      } else if (['ArrowUp', 'ArrowLeft', 'PageUp'].includes(e.key)) {
+        e.preventDefault();
+        this.prev();
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        this.go(0);
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        this.go(this.total - 1);
+      }
+    });
+  }
+
+  _setupWheel() {
+    let lastWheel = 0;
+    document.addEventListener('wheel', e => {
+      e.preventDefault();
+      const now = Date.now();
+      if (now - lastWheel < 600) return;
+      lastWheel = now;
+      if (e.deltaY > 0) this.next();
+      else if (e.deltaY < 0) this.prev();
+    }, { passive: false });
+  }
+
+  _setupTouch() {
+    let startY = 0;
+    document.addEventListener('touchstart', e => {
+      startY = e.touches[0].clientY;
+    }, { passive: true });
+
+    document.addEventListener('touchend', e => {
+      const diff = startY - e.changedTouches[0].clientY;
+      if (Math.abs(diff) > 50) {
+        if (diff > 0) this.next();
+        else this.prev();
+      }
+    }, { passive: true });
+  }
+
+  _setupObserver() {
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          /* update active slide index */
+          const idx = this.slides.indexOf(entry.target);
+          if (idx !== -1) {
+            this.current = idx;
+            this._updateUI(idx);
+          }
+          /* trigger reveal animations */
+          entry.target.querySelectorAll('.reveal').forEach(el => {
+            el.classList.add('visible');
+          });
+        }
+      });
+    }, { threshold: 0.5 });
+
+    this.slides.forEach(s => io.observe(s));
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  new PresentationController();
+
+  /* trigger reveals on first slide immediately */
+  document.querySelectorAll('#slide-1 .reveal').forEach(el => {
+    el.classList.add('visible');
+  });
+});
+</script>
+</body>
+</html>
