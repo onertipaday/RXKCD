@@ -1,8 +1,8 @@
 Package: RXKCD
 Type: Package
 Title: Get XKCD Comic from R
-Version: 2.0.1
-Date: 2026-04-14
+Version: 2.0.2
+Date: 2026-10-01
 Authors@R: c(person(given = "Paolo",
                     family = "Sonego",
                     role = c("aut", "cph", "cre"),
@@ -12,7 +12,7 @@ Authors@R: c(person(given = "Paolo",
                     role = "aut"))
 Description: Visualize your favorite XKCD comic strip directly from R.
     Includes full-text search with BM25 ranking and semantic similarity search
-    via local 'GloVe' embeddings, powered by a local 'DuckDB' cache.
+    via latent semantic analysis, powered by a local 'DuckDB' cache.
 URL: https://onertipaday.github.io/RXKCD/, https://github.com/onertipaday/RXKCD
 BugReports: https://github.com/onertipaday/RXKCD/issues
 License: GPL-2
@@ -26,5 +26,5 @@ Imports:
     utils,
     DBI,
     duckdb,
-    text2vec
-RoxygenNote: 7.3.3
+    Matrix
+Config/roxygen2/version: 8.1.0

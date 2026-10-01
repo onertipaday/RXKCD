@@ -239,47 +239,22 @@ updateConfig <- function() {
   # 5. Build full-text search index
   DBI::dbExecute(con, "INSTALL fts")
   DBI::dbExecute(con, "LOAD fts")
-  tryCatch(DBI::dbExecute(con, "PRAGMA drop_fts_index('xkcd')"), error = function(e) NULL)
+  # overwrite = 1 rebuilds in one statement; a separate drop_fts_index() call
+  # makes every second rebuild fail and leaves the database without an index
   DBI::dbExecute(con, "PRAGMA create_fts_index('xkcd', 'num', 'title', 'alt', 'transcript',
-                 stemmer = 'porter', stopwords = 'english', lower = 1, strip_accents = 1)")
+                 stemmer = 'porter', stopwords = 'english', lower = 1, strip_accents = 1,
+                 overwrite = 1)")
   message("Full-text search index updated.")
 
-  # 6. Build GloVe embeddings for similarXKCD()
+  # 6. Build LSA embeddings for similarXKCD()
   comics <- DBI::dbGetQuery(con, "SELECT num, title, alt, transcript FROM xkcd ORDER BY num")
   corpus <- paste(comics$title, comics$alt, comics$transcript, sep = " ")
-  corpus <- tolower(trimws(corpus))
+  emb <- build_lsa_embeddings(corpus)
+  rownames(emb$doc_embeddings) <- comics$num
 
-  it <- text2vec::itoken(corpus, tokenizer = text2vec::space_tokenizer, progressbar = FALSE)
-  vocab <- text2vec::create_vocabulary(it)
-  vocab <- text2vec::prune_vocabulary(vocab, term_count_min = 2L)
-  vectorizer <- text2vec::vocab_vectorizer(vocab)
-
-  # Rebuild iterator for TCM (iterators are consumed)
-  it <- text2vec::itoken(corpus, tokenizer = text2vec::space_tokenizer, progressbar = FALSE)
-  tcm <- text2vec::create_tcm(it, vectorizer, skip_grams_window = 5L)
-
-  glove <- text2vec::GlobalVectors$new(rank = 100L, x_max = 10L)
-  wv_main <- glove$fit_transform(tcm, n_iter = 25L, convergence_tol = 0.001)
-  wv_context <- glove$components
-  word_vectors <- wv_main + t(wv_context)
-
-  # Compute document embeddings (average of word vectors per comic)
-  wv_vocab <- rownames(word_vectors)
-  embed_dim <- ncol(word_vectors)
-  embed_matrix <- matrix(0, nrow = nrow(comics), ncol = embed_dim)
-
-  for (i in seq_len(nrow(comics))) {
-    tokens <- unlist(strsplit(corpus[i], "\\s+"))
-    matched <- tokens[tokens %in% wv_vocab]
-    if (length(matched) > 0) {
-      embed_matrix[i, ] <- colMeans(word_vectors[matched, , drop = FALSE])
-    }
-  }
-  rownames(embed_matrix) <- comics$num
-
-  saveRDS(word_vectors, file.path(db_dir, "glove_vectors.rds"))
-  saveRDS(embed_matrix, file.path(db_dir, "embeddings.rds"))
-  message("GloVe embeddings updated.")
+  saveRDS(emb$word_vectors, file.path(db_dir, "word_vectors.rds"))
+  saveRDS(emb$doc_embeddings, file.path(db_dir, "embeddings.rds"))
+  message("Semantic embeddings updated.")
 
   return(invisible(TRUE))
 }
@@ -347,8 +322,8 @@ searchXKCD <- function(query) {
 #' Find semantically similar XKCD comics
 #'
 #' @description
-#' Uses pre-computed GloVe embeddings to find comics that are semantically
-#' similar to the given query. Unlike \code{searchXKCD()}, which matches
+#' Uses pre-computed latent semantic analysis (LSA) embeddings to find comics
+#' that are semantically similar to the given query. Unlike \code{searchXKCD()}, which matches
 #' keywords, this function captures meaning (e.g., "feeling lonely" can match
 #' comics about isolation even if they don't contain the word "lonely").
 #' Run \code{updateConfig()} first to build the embeddings.
@@ -358,7 +333,7 @@ searchXKCD <- function(query) {
 #'
 #' @returns
 #' A data frame with columns \code{num}, \code{date}, \code{title}, \code{alt},
-#' and \code{similarity} (cosine similarity score, 0-1), ordered by similarity.
+#' and \code{similarity} (cosine similarity score, at most 1), ordered by similarity.
 #' If no similar comics are found, an empty data frame is returned invisibly.
 #' The function will stop with an error if the embeddings have not been built.
 #'
@@ -372,19 +347,19 @@ similarXKCD <- function(query, n = 5L) {
 
   home_dir <- Sys.getenv("HOME")
   db_dir <- file.path(home_dir, ".RXKCD")
-  vectors_path <- file.path(db_dir, "glove_vectors.rds")
+  vectors_path <- file.path(db_dir, "word_vectors.rds")
   embed_path <- file.path(db_dir, "embeddings.rds")
 
   if (!file.exists(vectors_path) || !file.exists(embed_path)) {
     stop("Embeddings not found. Please run updateConfig() first.")
   }
 
-  # Load GloVe word vectors and pre-computed document embeddings
+  # Load LSA word vectors and pre-computed document embeddings
   word_vectors <- readRDS(vectors_path)
   embed_matrix <- readRDS(embed_path)
 
   # Embed the query
-  tokens <- unlist(strsplit(tolower(trimws(query)), "\\s+"))
+  tokens <- tokenize_xkcd(query)[[1]]
   vocab <- rownames(word_vectors)
   matched <- tokens[tokens %in% vocab]
 

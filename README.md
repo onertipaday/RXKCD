@@ -10,7 +10,7 @@ __Status:__ Stable
 
 ### Description
 
-Visualize your favorite XKCD comic strip directly from R. Includes live archive searching with full-text BM25 ranking and semantic similarity search via local GloVe embeddings — all powered by a local DuckDB cache, no external API required.
+Visualize your favorite XKCD comic strip directly from R. Includes live archive searching with full-text BM25 ranking and semantic similarity search via local latent semantic analysis (LSA) embeddings — all powered by a local DuckDB cache, no external API required.
 
 ### Installation
 
@@ -32,7 +32,7 @@ pak::pak("onertipaday/RXKCD")
 ```r
 library(RXKCD)
 
-# First run: downloads all comic metadata, builds FTS index and GloVe embeddings
+# First run: downloads all comic metadata, builds FTS index and LSA embeddings
 # Subsequent runs: only syncs new comics
 updateConfig()
 
@@ -45,7 +45,7 @@ getXKCD(353)             # specific comic by number
 searchXKCD("python")
 searchXKCD("significant")
 
-# Semantic similarity search using GloVe embeddings
+# Semantic similarity search using LSA embeddings
 similarXKCD("feeling lonely")
 similarXKCD("space exploration", n = 10)
 ```
@@ -55,6 +55,6 @@ similarXKCD("space exploration", n = 10)
 | Function | Description |
 |----------|-------------|
 | `getXKCD(which, display, html, saveImg)` | Fetch a comic from the live XKCD API. `which` accepts `"current"`, `"random"`, or a comic number. |
-| `updateConfig()` | Sync local DuckDB cache with new comics, rebuild the FTS index, and retrain GloVe embeddings. |
+| `updateConfig()` | Sync local DuckDB cache with new comics, rebuild the FTS index, and rebuild the LSA embeddings. |
 | `searchXKCD(query)` | Full-text search across title, alt text, and transcript using BM25 ranking. Returns results with a relevance `score`. |
-| `similarXKCD(query, n = 5)` | Semantic similarity search using local GloVe embeddings. Returns top `n` results with a `similarity` score (0–1). |
+| `similarXKCD(query, n = 5)` | Semantic similarity search using local LSA embeddings. Returns top `n` results with a cosine `similarity` score. |

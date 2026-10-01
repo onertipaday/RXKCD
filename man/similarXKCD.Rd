@@ -13,13 +13,13 @@ similarXKCD(query, n = 5L)
 }
 \value{
 A data frame with columns \code{num}, \code{date}, \code{title}, \code{alt},
-and \code{similarity} (cosine similarity score, 0-1), ordered by similarity.
+and \code{similarity} (cosine similarity score, at most 1), ordered by similarity.
 If no similar comics are found, an empty data frame is returned invisibly.
 The function will stop with an error if the embeddings have not been built.
 }
 \description{
-Uses pre-computed GloVe embeddings to find comics that are semantically
-similar to the given query. Unlike \code{searchXKCD()}, which matches
+Uses pre-computed latent semantic analysis (LSA) embeddings to find comics
+that are semantically similar to the given query. Unlike \code{searchXKCD()}, which matches
 keywords, this function captures meaning (e.g., "feeling lonely" can match
 comics about isolation even if they don't contain the word "lonely").
 Run \code{updateConfig()} first to build the embeddings.
