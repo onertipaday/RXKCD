@@ -27,3 +27,12 @@ A data frame containing matching XKCD comics with columns `num`, `date`,
 no matches are found, an empty data frame is returned invisibly, and a
 message is printed. The function will stop with an error if the local
 database or search index is not found.
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+updateConfig()
+searchXKCD("satellite")
+} # }
+```

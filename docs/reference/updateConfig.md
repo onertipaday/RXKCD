@@ -14,3 +14,11 @@ updateConfig()
 \`TRUE\`, invisibly, if the database is successfully updated or
 determined to be up-to-date. The function will stop with an error if it
 cannot connect to \`xkcd.com\`.
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+updateConfig()
+} # }
+```

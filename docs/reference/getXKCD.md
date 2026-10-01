@@ -39,3 +39,12 @@ list is returned invisibly. If the comic is not found or connection
 fails, it returns \`NULL\` invisibly. Errors will occur if \`which\` is
 invalid or if the XKCD API cannot be reached when attempting to get a
 random comic.
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+getXKCD(which = 1)
+getXKCD(which = "random")
+} # }
+```
