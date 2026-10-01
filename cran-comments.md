@@ -13,6 +13,7 @@ or recursive dependency on 'text2vec', 'rsparse', 'MatrixExtra' or 'float'.
 ## Test environments
 
 * Local: Fedora Linux 44, R 4.6.1, `R CMD check --as-cran`
+* win-builder: Windows, R-devel (2026-09-30 r90605 ucrt)
 
 ## R CMD check results
 
